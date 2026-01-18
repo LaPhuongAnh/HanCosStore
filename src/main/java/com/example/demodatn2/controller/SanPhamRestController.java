@@ -1,0 +1,33 @@
+package com.example.demodatn2.controller;
+
+import com.example.demodatn2.dto.SanPhamRequestDTO;
+import com.example.demodatn2.dto.SanPhamResponseDTO;
+import com.example.demodatn2.service.SanPhamService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/san-pham")
+@RequiredArgsConstructor
+public class SanPhamRestController {
+
+    private final SanPhamService sanPhamService;
+
+    @PostMapping
+    public ResponseEntity<SanPhamResponseDTO> createSanPham(@RequestBody SanPhamRequestDTO requestDTO) {
+        return ResponseEntity.ok(sanPhamService.createSanPham(requestDTO));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<SanPhamResponseDTO> updateSanPham(@PathVariable Integer id, @RequestBody SanPhamRequestDTO requestDTO) {
+        requestDTO.setId(id);
+        return ResponseEntity.ok(sanPhamService.updateSanPham(requestDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSanPham(@PathVariable Integer id) {
+        sanPhamService.deleteSanPham(id);
+        return ResponseEntity.ok().build();
+    }
+}

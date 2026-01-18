@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sản phẩm - HANCOS</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #8b4d4d; --sidebar-width: 260px; }
+        body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; color: #333; }
+        
+        /* Sidebar */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            height: 100vh; 
+            position: fixed; 
+            left: 0; top: 0; 
+            background: #1a1a1a; 
+            color: #fff; 
+            padding: 2rem 1.5rem;
+            z-index: 1000;
+        }
+        .sidebar-brand { 
+            font-size: 1.5rem; 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            margin-bottom: 3rem; 
+            display: block;
+            text-align: center;
+            color: #fff;
+            text-decoration: none;
+        }
+        .nav-link { 
+            color: rgba(255,255,255,0.6); 
+            font-weight: 500; 
+            padding: 0.8rem 1rem; 
+            border-radius: 8px; 
+            margin-bottom: 0.5rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        .nav-link i { width: 25px; font-size: 1.1rem; margin-right: 10px; }
+        .nav-link:hover, .nav-link.active { 
+            background: rgba(255,255,255,0.1); 
+            color: #fff; 
+        }
+        .nav-link.active { background: var(--primary-color); }
+
+        /* Main Content */
+        .main-content { margin-left: var(--sidebar-width); padding: 2.5rem; }
+        
+        /* Top Header */
+        .top-header { 
+            background: #fff; 
+            padding: 1rem 2.5rem; 
+            margin: -2.5rem -2.5rem 2.5rem -2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .card { border: none; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); }
+        .product-img { width: 50px; height: 65px; object-fit: cover; border-radius: 8px; background: #f8f9fa; }
+        
+        .badge-active { background-color: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.2); }
+        .badge-inactive { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); }
+        
+        .table thead th { 
+            background: #fdfdfd; 
+            text-transform: uppercase; 
+            font-size: 0.75rem; 
+            letter-spacing: 1px; 
+            font-weight: 700; 
+            color: #888;
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .table tbody td { padding: 1.25rem 1rem; border-bottom: 1px solid #f8f9fa; }
+        
+        .btn-action { 
+            width: 35px; height: 35px; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 10px; 
+            transition: all 0.2s;
+            border: 1px solid #eee;
+            background: #fff;
+            color: #555;
+            text-decoration: none;
+        }
+        .btn-action:hover { background: #f8f9fa; color: var(--primary-color); border-color: var(--primary-color); }
+        .btn-delete:hover { color: #dc3545; border-color: #dc3545; }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+            border: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(139, 77, 77, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        @media (max-width: 992px) {
+            .sidebar { width: 80px; padding: 2rem 0.5rem; }
+            .sidebar-brand span, .nav-link span { display: none; }
+            .main-content { margin-left: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <a th:href="@{/}" class="sidebar-brand">
+        <i class="fas fa-shopping-bag me-2"></i><span>HANCOS</span>
+    </a>
+    <nav class="nav flex-column">
+        <a class="nav-link" th:href="@{/admin/dashboard}">
+            <i class="fas fa-th-large"></i><span>Dashboard</span>
+        </a>
+        <a class="nav-link active" th:href="@{/san-pham}">
+            <i class="fas fa-box"></i><span>Sản phẩm</span>
+        </a>
+        <a class="nav-link" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/categories}">
+            <i class="fas fa-list"></i><span>Danh mục</span>
+        </a>
+        <a class="nav-link" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/thong-ke}">
+            <i class="fas fa-chart-line"></i><span>Thống kê</span>
+        </a>
+        <a class="nav-link" th:href="@{/admin/orders}">
+            <i class="fas fa-shopping-cart"></i><span>Đơn hàng</span>
+        </a>
+        <a class="nav-link" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/users}">
+            <i class="fas fa-users"></i><span>Tài khoản</span>
+        </a>
+        <div class="mt-auto pt-5">
+            <hr class="text-white-50">
+            <a class="nav-link text-danger" th:href="@{/logout}">
+                <i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span>
+            </a>
+        </div>
+    </nav>
+</div>
+
+<div class="main-content">
+    <header class="top-header">
+        <h4 class="fw-800 mb-0 text-uppercase letter-spacing-1">Quản lý sản phẩm</h4>
+        <div class="d-flex align-items-center gap-3">
+            <div th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}">
+                <a th:href="@{/them-san-pham}" class="btn btn-dark rounded-0 fw-700 text-uppercase small letter-spacing-1 px-4 py-2">
+                    <i class="fas fa-plus me-2"></i> Thêm sản phẩm
+                </a>
+            </div>
+            <div class="rounded-circle bg-soft-primary d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                <i class="fas fa-user-shield"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search & Filter -->
+    <div class="card mb-4">
+        <div class="card-body p-4">
+            <form th:action="@{/san-pham}" method="get" class="row g-3" id="filterForm">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                        <input type="text" name="keyword" class="form-control border-start-0 ps-0" th:value="${keyword}" placeholder="Tìm theo tên hoặc mã SP...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="danhMucId" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tất cả danh mục</option>
+                        <option th:each="c : ${categories}" 
+                                th:value="${c.id}" 
+                                th:text="${c.ten}"
+                                th:selected="${selectedDanhMucId == c.id}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="trangThai" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="ACTIVE" th:selected="${selectedTrangThai == 'ACTIVE'}">ACTIVE</option>
+                        <option value="INACTIVE" th:selected="${selectedTrangThai == 'INACTIVE'}">INACTIVE</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-dark w-100 fw-700 rounded-0 text-uppercase small letter-spacing-1">Lọc</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Sản phẩm</th>
+                            <th>Mã SP</th>
+                            <th>Danh mục</th>
+                            <th>Phân loại</th>
+                            <th>Tồn kho</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p : ${products}">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="${not #lists.isEmpty(p.hinhAnhSanPhams) ? p.hinhAnhSanPhams[0].duongDanAnh : '/images/no-image.png'}" 
+                                         class="product-img" alt="Product">
+                                    <div>
+                                        <div th:text="${p.ten}" class="fw-700 text-dark">Áo sơ mi</div>
+                                        <small class="text-muted text-uppercase" style="font-size: 10px;" th:text="${p.chatLieu}">Cotton</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><code class="fw-700 text-dark" th:text="${p.maSanPham}">AO001</code></td>
+                            <td>
+                                <div th:if="${p.tenParentDanhMuc != null}" class="small text-muted text-uppercase fw-600" style="font-size: 10px;" th:text="${p.tenParentDanhMuc}">Cha</div>
+                                <div th:text="${p.tenDanhMuc != null ? p.tenDanhMuc : '-'}">Con</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border fw-600" th:text="${#lists.size(p.bienThes)} + ' mẫu'">0</span>
+                            </td>
+                            <td>
+                                <span class="fw-800" th:text="${p.tongSoLuongTon != null ? p.tongSoLuongTon : 0}">0</span>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill px-3 py-2" 
+                                      th:classappend="${p.trangThai == 'ACTIVE' ? 'badge-active' : 'badge-inactive'}"
+                                      th:text="${p.trangThai}">ACTIVE</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a th:href="@{/admin/san-pham/view/{id}(id=${p.id})}" class="btn-action" title="Xem chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" 
+                                       th:href="@{/admin/san-pham/edit/{id}(id=${p.id})}" class="btn-action" title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" 
+                                            class="btn-action btn-delete" title="Xóa" th:onclick="'deleteProduct(' + ${p.id} + ')'">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(products)}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fas fa-box-open fa-3x mb-3 d-block opacity-20"></i>
+                                Không tìm thấy sản phẩm nào.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function deleteProduct(id) {
+        Swal.fire({
+            title: 'Xác nhận xóa?',
+            text: "Sản phẩm sẽ bị đánh dấu là đã xóa và không hiển thị trên cửa hàng!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Xóa ngay',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/api/san-pham/' + id, {
+                    method: 'DELETE',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).then(res => {
+                    if (res.ok) {
+                        Swal.fire('Đã xóa!', 'Sản phẩm đã được xóa thành công.', 'success')
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi!', 'Không thể xóa sản phẩm này.', 'error');
+                    }
+                });
+            }
+        });
+    }
+</script>
+</body>
+</html>
