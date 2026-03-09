@@ -4,6 +4,7 @@ import com.example.demodatn2.dto.DoanhThuDTO;
 import com.example.demodatn2.entity.DonHang;
 import com.example.demodatn2.repository.ChiTietDonHangRepository;
 import com.example.demodatn2.repository.DonHangRepository;
+import com.example.demodatn2.repository.TaiKhoanRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -27,11 +28,13 @@ public class ThongKeService {
 
     private final DonHangRepository donHangRepository;
     private final ChiTietDonHangRepository chiTietDonHangRepository;
+    private final TaiKhoanRepository taiKhoanRepository;
 
     public DoanhThuDTO getDoanhThuTongHop() {
         BigDecimal tongDoanhThu = donHangRepository.sumTongDoanhThu();
         Long soDonHang = donHangRepository.countDonHangThanhCong();
         Long soSPDaBan = chiTietDonHangRepository.sumSoLuongDaBan();
+        Long soKhachHang = taiKhoanRepository.countCustomers();
 
         // Lấy doanh thu hôm nay
         Instant dauNgay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -44,6 +47,7 @@ public class ThongKeService {
                 .soSanPhamDaBan(soSPDaBan != null ? soSPDaBan : 0L)
                 .doanhThuHomNay(doanhThuHomNay != null ? doanhThuHomNay : BigDecimal.ZERO)
                 .soDonHomNay(soDonHomNay != null ? soDonHomNay : 0L)
+            .soKhachHang(soKhachHang != null ? soKhachHang : 0L)
                 .build();
     }
 
@@ -60,11 +64,18 @@ public class ThongKeService {
     }
 
     public Map<String, Object> getDoanhThuTrongKhoang(Instant tuNgay, Instant denNgay) {
-        BigDecimal doanhThu = donHangRepository.sumDoanhThuTrongKhoang(tuNgay, denNgay);
+        BigDecimal doanhThuThucTe = donHangRepository.sumTongTienByTrangThaiInRange(
+            List.of("COMPLETED"), tuNgay, denNgay);
+        BigDecimal doanhThuTamTinh = donHangRepository.sumTongTienByTrangThaiInRange(
+            List.of("PENDING", "PROCESSING", "SHIPPED", "DELIVERED"), tuNgay, denNgay);
+        BigDecimal doanhThuThatThoat = donHangRepository.sumTongTienByTrangThaiInRange(
+            List.of("CANCELLED"), tuNgay, denNgay);
         Long soDon = donHangRepository.countDonHangTrongKhoang(tuNgay, denNgay);
-        
+
         Map<String, Object> stats = new HashMap<>();
-        stats.put("doanhThu", doanhThu != null ? doanhThu : BigDecimal.ZERO);
+        stats.put("doanhThuThucTe", doanhThuThucTe != null ? doanhThuThucTe : BigDecimal.ZERO);
+//        stats.put("doanhThuTamTinh", doanhThuTamTinh != null ? doanhThuTamTinh : BigDecimal.ZERO);
+//        stats.put("doanhThuThatThoat", doanhThuThatThoat != null ? doanhThuThatThoat : BigDecimal.ZERO);
         stats.put("soDon", soDon != null ? soDon : 0L);
         return stats;
     }

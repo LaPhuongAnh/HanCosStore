@@ -136,10 +136,10 @@
                     </li>
                     <li><a class="dropdown-item active" th:href="@{/account/profile}">Thông tin tài khoản</a></li>
                     <li><a class="dropdown-item" th:href="@{/order/my-orders}">Đơn hàng của tôi</a></li>
-                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'NHAN_VIEN'))}">
+                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
                         <hr class="dropdown-divider">
                     </li>
-                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'NHAN_VIEN'))}">
+                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
                         <a class="dropdown-item text-danger fw-bold" th:href="@{/admin/dashboard}">Trang quản trị</a>
                     </li>
                     <li><hr class="dropdown-divider"></li>

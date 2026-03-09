@@ -12,50 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/hancos-home.css}">
-    <style>
-        .cart-container { padding: 4rem 0; min-height: 60vh; }
-        .cart-table { background: white; overflow: hidden; border: 1px solid #eee; }
-        .cart-table th { 
-            background: #fdfdfd; 
-            border: none; 
-            padding: 1.5rem; 
-            font-size: 0.75rem; 
-            text-transform: uppercase; 
-            letter-spacing: 1.5px; 
-            font-weight: 700;
-            color: #888;
-            border-bottom: 1px solid #eee;
-        }
-        .cart-table td { padding: 1.5rem; vertical-align: middle; border-bottom: 1px solid #eee; }
-        .product-img { width: 80px; height: 100px; object-fit: cover; background: #f8f9fa; }
-        .product-name { font-weight: 700; color: #1a1a1a; text-decoration: none; display: block; margin-bottom: 0.2rem; font-size: 0.95rem; }
-        .product-variant { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
-        .qty-input { width: 60px; height: 40px; text-align: center; border: 1px solid #ddd; padding: 5px; font-weight: 600; font-size: 0.9rem; }
-        .btn-remove { color: #888; cursor: pointer; background: none; border: none; transition: all 0.2s; font-size: 0.9rem; }
-        .btn-remove:hover { color: #8b4d4d; transform: scale(1.1); }
-        .cart-summary { background: white; padding: 2.5rem; border: 1px solid #eee; }
-        .summary-row { display: flex; justify-content: space-between; margin-bottom: 1.25rem; font-size: 0.9rem; }
-        .summary-total { font-size: 1.25rem; font-weight: 800; color: #1a1a1a; border-top: 1px solid #eee; padding-top: 1.5rem; margin-top: 1.5rem; letter-spacing: -0.5px; }
-        .btn-checkout { 
-            background: #1a1a1a; 
-            color: white; 
-            border: none; 
-            padding: 1.25rem; 
-            width: 100%; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            margin-top: 2rem; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            text-decoration: none; 
-            display: block; 
-            text-align: center; 
-            font-size: 0.85rem;
-            letter-spacing: 1.5px;
-        }
-        .btn-checkout:hover { background: #8b4d4d; color: white; transform: translateY(-2px); }
-        .price-col { font-weight: 600; color: #1a1a1a; font-size: 0.95rem; }
-        .total-col { font-weight: 700; color: #8b4d4d; font-size: 0.95rem; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/cart.css}">
 </head>
 <body>
 
@@ -100,10 +57,10 @@
                     </li>
                     <li><a class="dropdown-item" th:href="@{/account/profile}">Thông tin tài khoản</a></li>
                     <li><a class="dropdown-item" th:href="@{/order/my-orders}">Đơn hàng của tôi</a></li>
-                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'NHAN_VIEN'))}">
+                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
                         <hr class="dropdown-divider">
                     </li>
-                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'NHAN_VIEN'))}">
+                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
                         <a class="dropdown-item text-danger fw-bold" th:href="@{/admin/dashboard}">Trang quản trị</a>
                     </li>
                     <li><hr class="dropdown-divider"></li>
@@ -293,117 +250,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    function updateQuantity(itemId, qty) {
-        if (qty < 1) return;
-        
-        fetch(`/cart/update?itemId=${itemId}&soLuong=${qty}`, { 
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    // Cập nhật giao diện thay vì reload để giữ trạng thái mã giảm giá nếu có
-                    // Nếu reload cũng được nhưng cập nhật bằng tay sẽ mượt hơn
-                    // Tuy nhiên để an toàn và đồng bộ, cập nhật các field cần thiết
-                    document.getElementById('cart-subtotal').innerText = new Intl.NumberFormat('vi-VN').format(data.total) + '₫';
-                    
-                    if (data.discount > 0) {
-                        document.getElementById('discount-row').style.display = 'flex';
-                        document.getElementById('discount-value').innerText = '-' + new Intl.NumberFormat('vi-VN').format(data.discount) + '₫';
-                    } else {
-                        document.getElementById('discount-row').style.display = 'none';
-                    }
-                    document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAfterDiscount) + '₫';
-                    
-                    // Cập nhật dòng sản phẩm (tùy chọn)
-                    location.reload(); 
-                } else {
-                    Swal.fire('Lỗi', data.message, 'error').then(() => location.reload());
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                Swal.fire('Lỗi', 'Không thể kết nối với máy chủ', 'error');
-            });
-    }
-
-    function removeItem(itemId) {
-        Swal.fire({
-            title: 'Xác nhận xóa?',
-            text: "Bạn muốn xóa sản phẩm này khỏi giỏ hàng?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#1a1a1a',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Đồng ý',
-            cancelButtonText: 'Hủy'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`/cart/remove?itemId=${itemId}`, { 
-                    method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            document.getElementById('cart-subtotal').innerText = new Intl.NumberFormat('vi-VN').format(data.total) + '₫';
-                            if (data.discount > 0) {
-                                document.getElementById('discount-row').style.display = 'flex';
-                                document.getElementById('discount-value').innerText = '-' + new Intl.NumberFormat('vi-VN').format(data.discount) + '₫';
-                            } else {
-                                document.getElementById('discount-row').style.display = 'none';
-                            }
-                            document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAfterDiscount) + '₫';
-                            location.reload();
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        Swal.fire('Lỗi', 'Không thể kết nối với máy chủ', 'error');
-                    });
-            }
-        });
-    }
-
-    function applyVoucher() {
-        const code = document.getElementById('voucher-code').value;
-        if (!code) return;
-
-        fetch(`/cart/apply-voucher?code=${code}`, {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-            .then(res => res.json())
-            .then(data => {
-                const msg = document.getElementById('voucher-message');
-                if (data.success) {
-                    msg.className = 'small mt-2 text-success';
-                    msg.innerText = data.message;
-                    
-                    document.getElementById('discount-row').style.display = 'flex';
-                    document.getElementById('discount-value').innerText = '-' + new Intl.NumberFormat('vi-VN').format(data.discount) + '₫';
-                    document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAfterDiscount) + '₫';
-                } else {
-                    msg.className = 'small mt-2 text-danger';
-                    msg.innerText = data.message;
-                    
-                    document.getElementById('discount-row').style.display = 'none';
-                    const subtotal = parseInt(document.getElementById('cart-subtotal').innerText.replace(/\D/g, ''));
-                    document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(subtotal) + '₫';
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                Swal.fire('Lỗi', 'Không thể kết nối với máy chủ', 'error');
-            });
-    }
-
-    function useSuggestedVoucher(code) {
-        document.getElementById('voucher-code').value = code;
-        applyVoucher();
-    }
-</script>
+<script th:src="@{/js/cart.js}"></script>
 </body>
 </html>

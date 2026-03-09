@@ -5,6 +5,8 @@ import com.example.demodatn2.entity.DanhMuc;
 import com.example.demodatn2.repository.DanhMucRepository;
 import com.example.demodatn2.service.DanhMucService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,7 +14,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 @Service
 @RequiredArgsConstructor
 public class DanhMucServiceImpl implements DanhMucService {
@@ -119,4 +123,17 @@ public class DanhMucServiceImpl implements DanhMucService {
     public void deleteById(Integer id) {
         danhMucRepository.deleteById(id);
     }
+    @Override
+@Transactional(readOnly = true)
+public Page<DanhMuc> findByDanhMucChaIsNull(int page, int size) {
+
+    Pageable pageable = PageRequest.of(page, size);
+
+    Page<DanhMuc> categoryPage = danhMucRepository.findByDanhMucChaIsNull(pageable);
+
+    // load danh mục con
+    categoryPage.getContent().forEach(dm -> dm.getDanhMucCon().size());
+
+    return categoryPage;
+}
 }

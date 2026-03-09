@@ -1,7 +1,6 @@
 package com.example.demodatn2.controller;
 
 import com.example.demodatn2.dto.TaiKhoanDTO;
-import com.example.demodatn2.repository.VaiTroRepository;
 import com.example.demodatn2.service.TaiKhoanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -15,7 +14,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminTaiKhoanController {
 
     private final TaiKhoanService taiKhoanService;
-    private final VaiTroRepository vaiTroRepository;
 
     @GetMapping
     public String listUsers(@RequestParam(required = false) String keyword, 
@@ -30,7 +28,7 @@ public class AdminTaiKhoanController {
     @GetMapping("/edit/{id}")
     public String editUserForm(@PathVariable Integer id, Model model) {
         model.addAttribute("user", taiKhoanService.getTaiKhoanById(id));
-        model.addAttribute("allRoles", vaiTroRepository.findAll());
+        model.addAttribute("allRoles", taiKhoanService.getStandardRoles());
         return "admin/user-edit";
     }
 

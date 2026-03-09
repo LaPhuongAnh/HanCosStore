@@ -1,0 +1,8 @@
+# Example application properties - replace values with your local settings
+spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=your_db
+spring.datasource.username=sa
+spring.datasource.password=your_password
+spring.jpa.hibernate.ddl-auto=none
+app.reset-password.base-url=http://localhost:8080
+# Add other placeholders as needed
+

@@ -19,8 +19,10 @@ public class AuthInterceptor implements HandlerInterceptor {
         List<String> roles = (List<String>) session.getAttribute("ROLES");
 
         // Các request public: /login, /register, /logout, /403, static resources, trang chủ /
-        if (uri.equals("/login") || uri.equals("/register") || uri.equals("/logout") || uri.equals("/") || uri.equals("/index") || uri.equals("/403")
-                || uri.startsWith("/css/") || uri.startsWith("/js/") || uri.startsWith("/images/") 
+        if (uri.equals("/login") || uri.equals("/register") || uri.equals("/logout") || uri.equals("/forgot-password") || uri.equals("/reset-password")
+            || uri.equals("/") || uri.equals("/index") || uri.equals("/403") || uri.equals("/error") || uri.equals("/chinh-sach-doi-tra")
+                || uri.equals("/api/chatbot")
+                || uri.startsWith("/css/") || uri.startsWith("/js/") || uri.startsWith("/images/") || uri.startsWith("/data/")
                 || (uri.startsWith("/api/danh-muc/") && request.getMethod().equals("GET")) // Chỉ cho GET danh mục là public
                 || uri.startsWith("/products/")
                 || uri.startsWith("/cart/") || uri.startsWith("/order/checkout") || uri.startsWith("/order/success")) {
@@ -48,13 +50,17 @@ public class AuthInterceptor implements HandlerInterceptor {
                 return false;
             }
 
+            boolean isAdmin = roles.contains("ADMIN");
+            boolean isStaff = roles.contains("STAFF");
+            boolean isCustomer = roles.contains("CUSTOMER");
+
             // ADMIN có toàn quyền trong các path này
-            if (roles.contains("ADMIN")) {
+            if (isAdmin) {
                 return true;
             }
 
-            // NHAN_VIEN bị hạn chế
-            if (roles.contains("NHAN_VIEN")) {
+            // STAFF bị hạn chế
+            if (isStaff) {
                 // Cho phép xem chi tiết sản phẩm
                 if (uri.startsWith("/admin/san-pham/view/")) {
                     return true;
@@ -94,6 +100,11 @@ public class AuthInterceptor implements HandlerInterceptor {
                 }
 
                 return true;
+            }
+
+            if (isCustomer) {
+                response.sendRedirect("/403");
+                return false;
             }
 
             response.sendRedirect("/403");

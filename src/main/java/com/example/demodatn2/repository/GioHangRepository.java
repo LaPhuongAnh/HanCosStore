@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface GioHangRepository extends JpaRepository<GioHang, Integer> {
     Optional<GioHang> findByTaiKhoan(TaiKhoan taiKhoan);
     Optional<GioHang> findBySessionId(String sessionId);
+    void deleteByTaiKhoan_Id(Integer taiKhoanId);
 }

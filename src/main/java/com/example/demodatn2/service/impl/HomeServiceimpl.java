@@ -67,6 +67,7 @@ public class HomeServiceimpl implements HomeService {
            BienTheSanPhamRepository.PriceRange range=bienTheSanPhamRepository.findPriceRange(sp.getId());
            //mausac
            List<String> mauSac=bienTheSanPhamRepository.findDistinctMauSac(sp.getId());
+           List<String> kichCos=bienTheSanPhamRepository.findDistinctKichCo(sp.getId());
            return HomeProductVM.builder()
                    .id(sp.getId())
                    .ten(sp.getTen())
@@ -74,6 +75,7 @@ public class HomeServiceimpl implements HomeService {
                    .giaMin(range != null ? range.getMinGia() : null)
                    .giaMax(range != null ? range.getMaxGia() : null)
                    .mauSacs(mauSac)
+               .kichCos(kichCos)
                    .maDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getMa() : null)
                    .idDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getId() : null)
                    .danhMuc(sp.getDanhMuc())

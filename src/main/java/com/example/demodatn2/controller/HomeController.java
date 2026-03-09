@@ -52,6 +52,16 @@ public class HomeController {
                 .collect(Collectors.toList());
         model.addAttribute("parentCategories", parentCategories);
 
+        Map<Integer, List<HomeProductVM>> categoryPreviews = parentCategories.stream()
+            .collect(Collectors.toMap(
+                DanhMuc::getId,
+                parent -> homeService.getHomeProducts(parent.getId(), null)
+                    .stream()
+                    .limit(3)
+                    .collect(Collectors.toList())
+            ));
+        model.addAttribute("categoryPreviews", categoryPreviews);
+
         // 4. Tạo Map: key = ID danh mục cha, value = List danh mục con
         Map<Integer, List<DanhMuc>> childrenMap = allCategories.stream()
                 .filter(dm -> dm.getDanhMucCha() != null)
@@ -59,6 +69,33 @@ public class HomeController {
         model.addAttribute("childrenMap", childrenMap);
 
         return "index"; // templates/index.html
+    }
+
+    @GetMapping("/chinh-sach-doi-tra")
+    public String returnPolicy(Model model, HttpSession session) {
+        session.getId(); // Force session creation
+        if (session.getAttribute("CART_COUNT") == null) {
+            session.setAttribute("CART_COUNT", cartService.getItemCount(session));
+        }
+
+        List<DanhMuc> allCategories = danhMucService.getActive();
+        model.addAttribute("categories", allCategories);
+
+        List<DanhMuc> parentCategories = allCategories.stream()
+                .filter(dm -> dm.getDanhMucCha() == null)
+                .collect(Collectors.toList());
+
+        Map<Integer, List<HomeProductVM>> categoryPreviews = parentCategories.stream()
+                .collect(Collectors.toMap(
+                        DanhMuc::getId,
+                        parent -> homeService.getHomeProducts(parent.getId(), null)
+                                .stream()
+                                .limit(3)
+                                .collect(Collectors.toList())
+                ));
+        model.addAttribute("categoryPreviews", categoryPreviews);
+
+        return "Chinhsachdoitra";
     }
 
     @GetMapping("/products/{id}")

@@ -1,4 +1,4 @@
-                                                       <!doctype html>
+﻿                                                       <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8" />
@@ -167,12 +167,12 @@
 
                     <div class="product-price">
                         <span th:if="${p.giaMin != null}"
-                              th:text="${#numbers.formatDecimal(p.giaMin,0,'COMMA',0,'POINT')} + '₫'">
-                            0₫
+                              th:text="${#numbers.formatDecimal(p.giaMin,0,'COMMA',0,'POINT')} + ' VND'">
+                            0 VND
                         </span>
                         <span class="price-range"
                               th:if="${p.giaMax != null and p.giaMin != null and p.giaMax.compareTo(p.giaMin) != 0}"
-                              th:text="'– ' + ${#numbers.formatDecimal(p.giaMax,0,'COMMA',0,'POINT')} + '₫'">
+                              th:text="' - ' + ${#numbers.formatDecimal(p.giaMax,0,'COMMA',0,'POINT')} + ' VND'">
                         </span>
                     </div>
 
@@ -193,6 +193,12 @@
             </div>
             <p>Chưa có sản phẩm ACTIVE trong DB.</p>
         </div>
+    </div>
+    <div id="homePaginationWrap" class="home-pagination-wrap">
+        <nav aria-label="Phan trang san pham">
+            <ul id="homePagination" class="pagination justify-content-center mb-0" data-page-size="8"></ul>
+        </nav>
+        <p id="homePageInfo" class="home-page-info"></p>
     </div>
 </section>
 
@@ -241,3 +247,4 @@
 <script th:src="@{/js/hancos-home.js}"></script>
 </body>
 </html>
+

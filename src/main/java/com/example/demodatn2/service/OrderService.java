@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -74,17 +75,30 @@ public class OrderService {
     @Transactional
     public void updateOrderStatus(Integer orderId, String newStatus) {
         DonHang donHang = getOrderById(orderId);
-        
-        // Không được chỉnh sửa đơn đã hoàn thành (DELIVERED) hoặc đã hủy (CANCELLED)
-        if ("DELIVERED".equals(donHang.getTrangThai()) || "CANCELLED".equals(donHang.getTrangThai())) {
-            throw new RuntimeException("Không thể cập nhật trạng thái cho đơn hàng đã hoàn thành hoặc đã hủy.");
+        String currentStatus = donHang.getTrangThai();
+
+        if (newStatus == null || newStatus.trim().isEmpty()) {
+            throw new RuntimeException("Trạng thái mới không hợp lệ.");
         }
-        
-        // Nếu chuyển sang trạng thái CANCELLED từ updateOrderStatus (thường bởi admin)
+        newStatus = newStatus.trim().toUpperCase();
+
+        if (currentStatus == null || currentStatus.trim().isEmpty()) {
+            throw new RuntimeException("Trạng thái hiện tại không hợp lệ.");
+        }
+        currentStatus = currentStatus.trim().toUpperCase();
+
+        if (currentStatus.equals(newStatus)) {
+            return;
+        }
+
+        if ("CANCELLED".equals(currentStatus)) {
+            throw new RuntimeException("Không thể cập nhật trạng thái cho đơn hàng đã hủy.");
+        }
+
         if ("CANCELLED".equals(newStatus)) {
             restoreStock(donHang);
         }
-        
+
         donHang.setTrangThai(newStatus);
         donHang.setNgayCapNhat(Instant.now());
         donHangRepository.save(donHang);
@@ -117,6 +131,27 @@ public class OrderService {
         restoreStock(donHang);
         
         donHangRepository.save(donHang);
+    }
+
+    @Transactional
+    public int autoCompleteDeliveredOrders(int days) {
+        if (days <= 0) {
+            return 0;
+        }
+
+        Instant threshold = Instant.now().minus(days, ChronoUnit.DAYS);
+        List<DonHang> deliveredOrders = donHangRepository.findByTrangThaiAndLastUpdateBefore("DELIVERED", threshold);
+
+        for (DonHang donHang : deliveredOrders) {
+            if ("CANCELLED".equalsIgnoreCase(donHang.getTrangThai())) {
+                continue;
+            }
+            donHang.setTrangThai("COMPLETED");
+            donHang.setNgayCapNhat(Instant.now());
+            donHangRepository.save(donHang);
+        }
+
+        return deliveredOrders.size();
     }
 
     private void restoreStock(DonHang donHang) {

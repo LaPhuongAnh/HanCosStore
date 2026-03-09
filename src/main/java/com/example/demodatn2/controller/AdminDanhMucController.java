@@ -4,6 +4,7 @@ import com.example.demodatn2.dto.DanhMucDTO;
 import com.example.demodatn2.entity.DanhMuc;
 import com.example.demodatn2.service.DanhMucService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +18,20 @@ public class AdminDanhMucController {
     private final DanhMucService danhMucService;
 
     @GetMapping
-    public String listCategories(Model model) {
-        model.addAttribute("categories", danhMucService.getAllDTOs());
+    public String listCategories(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+        int safePage = Math.max(page, 1);
+        int safeSize = size <= 0 ? 10 : Math.min(size, 100);
+
+        Page<DanhMuc> categoryPage = danhMucService.findByDanhMucChaIsNull(safePage - 1, safeSize);
+        int totalPages = Math.max(categoryPage.getTotalPages(), 1);
+
+        model.addAttribute("categories", categoryPage.getContent());
+        model.addAttribute("currentPage", safePage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageSize", safeSize);
         return "admin/categories";
     }
 

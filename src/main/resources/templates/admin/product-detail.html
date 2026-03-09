@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -51,7 +51,7 @@
 
 <div class="header">
     <div class="header-content">
-        <a th:href="@{/admin/dashboard}" class="logo">HANCOS ADMIN</a>
+        <a th:href="@{/}" class="logo">HANCOS ADMIN</a>
         <div class="nav-links">
             <a th:href="@{/san-pham}">Danh sách sản phẩm</a>
         </div>
@@ -123,6 +123,7 @@
                             <th>Số Lượng Tồn</th>
                             <th>Giá Bán</th>
                             <th>Giá Gốc</th>
+                            <th>Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,6 +134,12 @@
                             <td th:text="${bt.soLuongTon}"></td>
                             <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(bt.gia, 0, 'COMMA', 0, 'POINT')} + '₫'"></td>
                             <td class="text-muted" th:text="${bt.giaGoc != null ? #numbers.formatDecimal(bt.giaGoc, 0, 'COMMA', 0, 'POINT') + '₫' : '-'}"></td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-dark"
+                                   th:href="@{/admin/san-pham/nhap-kho/{id}(id=${product.id},bienTheId=${bt.id})}">
+                                    Nhập kho
+                                </a>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -180,3 +187,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

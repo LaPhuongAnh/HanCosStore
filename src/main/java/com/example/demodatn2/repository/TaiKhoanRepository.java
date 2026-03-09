@@ -11,6 +11,10 @@ import java.util.Optional;
 public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, Integer> {
     Optional<TaiKhoan> findByTenDangNhap(String tenDangNhap);
     Optional<TaiKhoan> findByEmail(String email);
+    Optional<TaiKhoan> findByEmailIgnoreCase(String email);
+
+    @Query("SELECT COUNT(DISTINCT t.id) FROM TaiKhoan t JOIN t.vaiTros v WHERE v.ma = 'CUSTOMER'")
+    Long countCustomers();
 
     @Query("SELECT t FROM TaiKhoan t WHERE " +
            "(:keyword IS NULL OR :keyword = '' OR " +

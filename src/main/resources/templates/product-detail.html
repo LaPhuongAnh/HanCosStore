@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8" />
@@ -154,10 +154,10 @@
                     </li>
                     <li><a class="dropdown-item" th:href="@{/account/profile}">Thông tin tài khoản</a></li>
                     <li><a class="dropdown-item" th:href="@{/order/my-orders}">Đơn hàng của tôi</a></li>
-                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'NHAN_VIEN'))}">
+                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
                         <hr class="dropdown-divider">
                     </li>
-                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'NHAN_VIEN'))}">
+                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
                         <a class="dropdown-item text-danger fw-bold" th:href="@{/admin/dashboard}">Trang quản trị</a>
                     </li>
                     <li><hr class="dropdown-divider"></li>
@@ -273,7 +273,7 @@
             <div class="d-flex align-items-center gap-3">
                 <div class="quantity-selector">
                     <button class="qty-btn" onclick="updateQty(-1)">-</button>
-                    <input type="number" class="qty-input" id="cartQty" value="1" min="1" readonly>
+                    <input type="number" class="qty-input" id="cartQty" value="1" min="1" step="1" inputmode="numeric" oninput="handleQtyInput(this)">
                     <button class="qty-btn" onclick="updateQty(1)">+</button>
                 </div>
                 <div class="flex-grow-1">
@@ -284,7 +284,7 @@
             <div class="product-meta">
                 <p><strong>Mã sản phẩm:</strong> <span th:text="${p != null ? p.maSanPham : ''}">SKU</span></p>
                 <p><strong>Chất liệu:</strong> <span th:text="${p != null ? p.chatLieu : ''}">Vải</span></p>
-                <p><strong>Giới tinh:</strong> <span th:text="${p != null ? p.gioiTinh : ''}">Unisex</span></p>
+                <p><strong>Giới tính:</strong> <span th:text="${p != null ? p.gioiTinh : ''}">Unisex</span></p>
                 <p><strong>Tình trạng:</strong> <span id="stockStatus">Chọn biến thể</span></p>
             </div>
         </div>
@@ -348,7 +348,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2024</span> Hancos — Minimalist Fashion</p>
+            <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2024</span> Hancos - Minimalist Fashion</p>
         </div>
     </div>
 </footer>
@@ -440,16 +440,19 @@
         const oldPriceEl = document.getElementById('displayOldPrice');
         const stockEl = document.getElementById('stockStatus');
         const btn = document.getElementById('addToCartBtn');
+        const qtyInput = document.getElementById('cartQty');
 
         if (currentVariant) {
-            priceEl.innerText = new Intl.NumberFormat('vi-VN').format(currentVariant.gia) + '₫';
+            priceEl.innerText = new Intl.NumberFormat('vi-VN').format(currentVariant.gia) + ' VND';
             if (currentVariant.giaGoc && currentVariant.giaGoc > currentVariant.gia) {
-                oldPriceEl.innerText = new Intl.NumberFormat('vi-VN').format(currentVariant.giaGoc) + '₫';
+                oldPriceEl.innerText = new Intl.NumberFormat('vi-VN').format(currentVariant.giaGoc) + ' VND';
             } else {
                 oldPriceEl.innerText = '';
             }
             stockEl.innerText = 'Còn hàng (' + currentVariant.soLuongTon + ')';
             btn.disabled = false;
+            qtyInput.max = String(currentVariant.soLuongTon);
+            handleQtyInput(qtyInput);
         } else {
             if (!selectedColor) {
                 priceEl.innerText = 'Chọn màu sắc';
@@ -459,13 +462,21 @@
             oldPriceEl.innerText = '';
             stockEl.innerText = 'Chọn biến thể';
             btn.disabled = true;
+            qtyInput.value = 1;
+            qtyInput.removeAttribute('max');
         }
     }
-
-    function updateQty(delta) {
+function updateQty(delta) {
         const input = document.getElementById('cartQty');
-        let val = parseInt(input.value) + delta;
+        let val = (parseInt(input.value, 10) || 1) + delta;
         if (val < 1) val = 1;
+        if (currentVariant && val > currentVariant.soLuongTon) val = currentVariant.soLuongTon;
+        input.value = val;
+    }
+
+    function handleQtyInput(input) {
+        let val = parseInt(input.value, 10);
+        if (Number.isNaN(val) || val < 1) val = 1;
         if (currentVariant && val > currentVariant.soLuongTon) val = currentVariant.soLuongTon;
         input.value = val;
     }
@@ -473,7 +484,9 @@
     function addToCart() {
         if (!currentVariant) return;
 
-        const qty = document.getElementById('cartQty').value;
+        const qtyInput = document.getElementById('cartQty');
+        handleQtyInput(qtyInput);
+        const qty = parseInt(qtyInput.value, 10) || 1;
         const formData = new FormData();
         formData.append('bienTheId', currentVariant.id);
         formData.append('soLuong', qty);
@@ -536,3 +549,5 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
+
+

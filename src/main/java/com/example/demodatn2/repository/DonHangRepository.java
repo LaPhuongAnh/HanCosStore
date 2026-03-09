@@ -11,8 +11,10 @@ import java.util.List;
 
 public interface DonHangRepository extends JpaRepository<DonHang, Integer> {
     List<DonHang> findByTaiKhoanOrderByNgayDatDesc(TaiKhoan taiKhoan);
+    boolean existsByTaiKhoan_Id(Integer taiKhoanId);
     List<DonHang> findAllByOrderByNgayDatDesc();
     List<DonHang> findByTrangThaiOrderByNgayDatDesc(String trangThai);
+        java.util.Optional<DonHang> findByMaDonHangIgnoreCase(String maDonHang);
 
     @org.springframework.data.jpa.repository.Query("SELECT SUM(d.tongTien) FROM DonHang d WHERE d.trangThai = 'COMPLETED'")
     BigDecimal sumTongDoanhThu();
@@ -39,6 +41,13 @@ public interface DonHangRepository extends JpaRepository<DonHang, Integer> {
             "AND (:denNgay IS NULL OR d.ngayDat <= :denNgay)")
     BigDecimal sumDoanhThuTrongKhoang(@Param("tuNgay") Instant tuNgay, @Param("denNgay") Instant denNgay);
 
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(d.tongTien) FROM DonHang d WHERE d.trangThai IN :statuses " +
+            "AND (:tuNgay IS NULL OR d.ngayDat >= :tuNgay) " +
+            "AND (:denNgay IS NULL OR d.ngayDat <= :denNgay)")
+    BigDecimal sumTongTienByTrangThaiInRange(@Param("statuses") List<String> statuses,
+                                             @Param("tuNgay") Instant tuNgay,
+                                             @Param("denNgay") Instant denNgay);
+
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(d) FROM DonHang d WHERE d.trangThai = 'COMPLETED' " +
             "AND (:tuNgay IS NULL OR d.ngayDat >= :tuNgay) " +
             "AND (:denNgay IS NULL OR d.ngayDat <= :denNgay)")
@@ -61,4 +70,9 @@ public interface DonHangRepository extends JpaRepository<DonHang, Integer> {
             "LOWER(d.hoTenNhan) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(d.soDienThoaiNhan) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<DonHang> searchWithStatus(@Param("keyword") String keyword, @Param("status") String status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT d FROM DonHang d WHERE d.trangThai = :status AND (" +
+            "(d.ngayCapNhat IS NOT NULL AND d.ngayCapNhat <= :before) OR " +
+            "(d.ngayCapNhat IS NULL AND d.ngayDat <= :before))")
+    List<DonHang> findByTrangThaiAndLastUpdateBefore(@Param("status") String status, @Param("before") Instant before);
 }

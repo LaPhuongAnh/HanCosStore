@@ -10,6 +10,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Configuration
@@ -22,29 +24,83 @@ public class DataInitializer {
     @Bean
     public CommandLineRunner initData() {
         return args -> {
-            // Khởi tạo vai trò
-            if (vaiTroRepository.findByMa("ADMIN").isEmpty()) {
-                VaiTro adminRole = new VaiTro();
-                adminRole.setMa("ADMIN");
-                adminRole.setTen("Quản trị viên");
-                vaiTroRepository.save(adminRole);
-            }
-            if (vaiTroRepository.findByMa("USER").isEmpty()) {
-                VaiTro userRole = new VaiTro();
-                userRole.setMa("USER");
-                userRole.setTen("Người dùng");
-                vaiTroRepository.save(userRole);
-            }
-            if (vaiTroRepository.findByMa("NHAN_VIEN").isEmpty()) {
-                VaiTro staffRole = new VaiTro();
-                staffRole.setMa("NHAN_VIEN");
-                staffRole.setTen("Nhân viên");
-                vaiTroRepository.save(staffRole);
+            // Chuẩn hóa vai trò hệ thống (ADMIN / STAFF / CUSTOMER)
+            Optional<VaiTro> legacyUser = vaiTroRepository.findByMa("USER");
+            Optional<VaiTro> legacyStaff = vaiTroRepository.findByMa("NHAN_VIEN");
+            Optional<VaiTro> existingCustomer = vaiTroRepository.findByMa("CUSTOMER");
+            Optional<VaiTro> existingStaff = vaiTroRepository.findByMa("STAFF");
+
+            if (legacyUser.isPresent() && existingCustomer.isEmpty()) {
+                VaiTro customerRole = legacyUser.get();
+                customerRole.setMa("CUSTOMER");
+                customerRole.setTen("Khách hàng");
+                vaiTroRepository.save(customerRole);
+                existingCustomer = Optional.of(customerRole);
             }
 
-            VaiTro adminRole = vaiTroRepository.findByMa("ADMIN").get();
-            VaiTro userRole = vaiTroRepository.findByMa("USER").get();
-            VaiTro staffRole = vaiTroRepository.findByMa("NHAN_VIEN").get();
+            if (legacyStaff.isPresent() && existingStaff.isEmpty()) {
+                VaiTro staffRole = legacyStaff.get();
+                staffRole.setMa("STAFF");
+                staffRole.setTen("Nhân viên");
+                vaiTroRepository.save(staffRole);
+                existingStaff = Optional.of(staffRole);
+            }
+
+            if (legacyUser.isPresent() && existingCustomer.isPresent()
+                    && !legacyUser.get().getId().equals(existingCustomer.get().getId())) {
+                VaiTro oldRole = legacyUser.get();
+                VaiTro newRole = existingCustomer.get();
+                taiKhoanRepository.findAll().forEach(taiKhoan -> {
+                    if (taiKhoan.getVaiTros().contains(oldRole)) {
+                        Set<VaiTro> roles = new HashSet<>(taiKhoan.getVaiTros());
+                        roles.remove(oldRole);
+                        roles.add(newRole);
+                        taiKhoan.setVaiTros(roles);
+                        taiKhoanRepository.save(taiKhoan);
+                    }
+                });
+                vaiTroRepository.delete(oldRole);
+            }
+
+            if (legacyStaff.isPresent() && existingStaff.isPresent()
+                    && !legacyStaff.get().getId().equals(existingStaff.get().getId())) {
+                VaiTro oldRole = legacyStaff.get();
+                VaiTro newRole = existingStaff.get();
+                taiKhoanRepository.findAll().forEach(taiKhoan -> {
+                    if (taiKhoan.getVaiTros().contains(oldRole)) {
+                        Set<VaiTro> roles = new HashSet<>(taiKhoan.getVaiTros());
+                        roles.remove(oldRole);
+                        roles.add(newRole);
+                        taiKhoan.setVaiTros(roles);
+                        taiKhoanRepository.save(taiKhoan);
+                    }
+                });
+                vaiTroRepository.delete(oldRole);
+            }
+
+            VaiTro adminRole = vaiTroRepository.findByMa("ADMIN")
+                    .orElseGet(() -> {
+                        VaiTro role = new VaiTro();
+                        role.setMa("ADMIN");
+                        role.setTen("Quản trị viên");
+                        return vaiTroRepository.save(role);
+                    });
+
+            VaiTro staffRole = vaiTroRepository.findByMa("STAFF")
+                    .orElseGet(() -> {
+                        VaiTro role = new VaiTro();
+                        role.setMa("STAFF");
+                        role.setTen("Nhân viên");
+                        return vaiTroRepository.save(role);
+                    });
+
+            VaiTro customerRole = vaiTroRepository.findByMa("CUSTOMER")
+                    .orElseGet(() -> {
+                        VaiTro role = new VaiTro();
+                        role.setMa("CUSTOMER");
+                        role.setTen("Khách hàng");
+                        return vaiTroRepository.save(role);
+                    });
 
             // Khởi tạo tài khoản
             if (taiKhoanRepository.findByTenDangNhap("admin").isEmpty()) {
@@ -54,7 +110,7 @@ public class DataInitializer {
                 admin.setHoTen("Quản trị viên");
                 admin.setEmail("admin@hancos.com");
                 admin.setTrangThai("ACTIVE");
-                admin.setVaiTros(Set.of(adminRole));
+                admin.setVaiTros(Set.of(adminRole, customerRole));
                 taiKhoanRepository.save(admin);
             }
 
@@ -65,7 +121,7 @@ public class DataInitializer {
                 staff.setHoTen("Nhân viên demo");
                 staff.setEmail("nhanvien@gmail.com");
                 staff.setTrangThai("ACTIVE");
-                staff.setVaiTros(Set.of(staffRole));
+                staff.setVaiTros(Set.of(staffRole, customerRole));
                 taiKhoanRepository.save(staff);
             }
 
@@ -76,7 +132,7 @@ public class DataInitializer {
                 user.setHoTen("Người dùng demo");
                 user.setEmail("user@gmail.com");
                 user.setTrangThai("ACTIVE");
-                user.setVaiTros(Set.of(userRole));
+                user.setVaiTros(Set.of(customerRole));
                 taiKhoanRepository.save(user);
             }
         };

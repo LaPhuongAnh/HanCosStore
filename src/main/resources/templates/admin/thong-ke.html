@@ -4,252 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thống kê doanh thu - HANCOS</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-sidebar.css}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root { --primary-color: #8b4d4d; }
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background: white; min-height: 100vh; border-right: 1px solid #eee; padding: 2rem 1rem; }
-        .main-content { padding: 2rem; }
-        .card { border: none; border-radius: 10px; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); margin-bottom: 2rem; }
-        .nav-link { color: #333; font-weight: 500; margin-bottom: 0.5rem; border-radius: 5px; }
-        .nav-link:hover { background: #f8f9fa; color: var(--primary-color); }
-        .nav-link.active { background: var(--primary-color); color: white !important; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/admin/thong-ke.css}">
 </head>
 <body>
 
-<div class="container-fluid">
+<div th:replace="~{admin/fragments/sidebar :: sidebar('thongke')}"></div>
+
+<div class="main-content">
+    <header class="top-header">
+        <h4 class="fw-800 mb-0 text-uppercase letter-spacing-1">Thống kê doanh thu</h4>
+        <div class="rounded-circle bg-soft-primary d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+            <i class="fas fa-chart-line"></i>
+        </div>
+    </header>
+
+    <div class="card">
+        <div class="card-body p-4">
+            <form class="row g-3 align-items-center">
+                <div class="col-md-3">
+                    <label class="form-label fw-700">Từ ngày</label>
+                    <input type="date" class="form-control" id="tuNgay">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-700">Đến ngày</label>
+                    <input type="date" class="form-control" id="denNgay">
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-2 flex-wrap align-items-end" style="margin-top: 1.9rem;">
+                        <button type="button" class="btn btn-dark" onclick="updateStatistics()">Lọc</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetFilter()">Reset</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="quickFilter(0)">Hôm nay</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="quickFilter(1)">1 ngày trước</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="quickFilter(3)">3 ngày trước</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="quickFilter(7)">7 ngày trước</button>
+                        <button type="button" class="btn btn-success ms-auto" onclick="exportExcel()">
+                            <i class="fas fa-file-excel me-1"></i> Xuất Excel
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar">
-            <h3 class="text-center fw-bold mb-4" style="letter-spacing: 2px;">HANCOS</h3>
-            <nav class="nav flex-column">
-                <a class="nav-link" th:href="@{/}"><i class="fas fa-home me-2"></i> Trang chủ</a>
-                <a class="nav-link" th:href="@{/admin/dashboard}"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
-                <a class="nav-link" th:href="@{/san-pham}"><i class="fas fa-box me-2"></i> Sản phẩm</a>
-                <a class="nav-link" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/categories}"><i class="fas fa-list me-2"></i> Danh mục</a>
-                <a class="nav-link" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/vouchers}"><i class="fas fa-ticket-alt me-2"></i> Voucher</a>
-                <a class="nav-link active" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/thong-ke}"><i class="fas fa-chart-line me-2"></i> Thống kê</a>
-                <a class="nav-link" th:href="@{/admin/orders}"><i class="fas fa-shopping-cart me-2"></i> Đơn hàng</a>
-                <a class="nav-link" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/users}"><i class="fas fa-users me-2"></i> Tài khoản</a>
-                <hr>
-                <a class="nav-link text-danger" th:href="@{/logout}"><i class="fas fa-sign-out-alt me-2"></i> Đăng xuất</a>
-            </nav>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6>Doanh thu thực tế</h6>
+                    <h2 id="doanhThuThucTe">...</h2>
+                </div>
+            </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="col-md-9 col-lg-10 main-content">
-            <h2 class="fw-bold mb-4">THỐNG KÊ DOANH THU</h2>
 
-            <!-- Filter Date -->
-            <div class="card mb-4">
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card bg-info text-white">
                 <div class="card-body">
-                    <form id="filterDateForm" class="row g-3 align-items-end">
-                        <div class="col-md-3">
-                            <label class="form-label">Từ ngày</label>
-                            <input type="date" id="tuNgay" class="form-control">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Đến ngày</label>
-                            <input type="date" id="denNgay" class="form-control">
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-dark" onclick="updateStatistics()">Lọc</button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="resetFilter()">Reset</button>
-                                <button type="button" class="btn btn-outline-primary" onclick="quickFilter(0)">Hôm nay</button>
-                                <button type="button" class="btn btn-outline-primary" onclick="quickFilter(1)">1 ngày trước</button>
-                                <button type="button" class="btn btn-outline-primary" onclick="quickFilter(3)">3 ngày trước</button>
-                                <button type="button" class="btn btn-outline-primary" onclick="quickFilter(7)">7 ngày trước</button>
-                                <button type="button" class="btn btn-success ms-auto" onclick="exportExcel()">
-                                    <i class="fas fa-file-excel me-1"></i> Xuất Excel
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body">
-                            <h6>Doanh thu trong kỳ</h6>
-                            <h2 id="doanhThuTrongKy">...</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <h6>Đơn hàng trong kỳ</h6>
-                            <h2 id="soDonTrongKy">...</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mt-4">
-                <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                    <span>Biểu đồ doanh thu theo ngày</span>
-                    <span id="chartLabel" class="text-muted small">Tất cả thời gian</span>
-                </div>
-                <div class="card-body">
-                    <canvas id="doanhThuChart" height="100"></canvas>
+                    <h6>Đơn hàng trong kỳ</h6>
+                    <h2 id="soDonTrongKy">...</h2>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-white fw-bold d-flex justify-content-between">
+            <span>Biểu đồ doanh thu theo ngày</span>
+            <span id="chartLabel" class="text-muted small">Tất cả thời gian</span>
+        </div>
+        <div class="card-body">
+            <canvas id="doanhThuChart" height="100"></canvas>
+        </div>
+    </div>
 </div>
 
-<script>
-    let myChart = null;
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Mặc định load 30 ngày gần đây
-        const today = new Date();
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(today.getDate() - 30);
-        
-        document.getElementById('tuNgay').value = thirtyDaysAgo.toISOString().split('T')[0];
-        document.getElementById('denNgay').value = today.toISOString().split('T')[0];
-        
-        updateStatistics();
-    });
-
-    function resetFilter() {
-        document.getElementById('tuNgay').value = '';
-        document.getElementById('denNgay').value = '';
-        updateStatistics();
-    }
-
-    function quickFilter(days) {
-        const today = new Date();
-        const pastDate = new Date();
-        pastDate.setDate(today.getDate() - days);
-        
-        const formatYMD = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        };
-
-        document.getElementById('tuNgay').value = formatYMD(pastDate);
-        document.getElementById('denNgay').value = formatYMD(today);
-        updateStatistics();
-    }
-
-    function exportExcel() {
-        const tuNgay = document.getElementById('tuNgay').value;
-        const denNgay = document.getElementById('denNgay').value;
-        
-        let url = '/admin/thong-ke/export-excel';
-        let params = [];
-        if (tuNgay) params.push(`tuNgay=${tuNgay}`);
-        if (denNgay) params.push(`denNgay=${denNgay}`);
-        
-        if (params.length > 0) {
-            url += '?' + params.join('&');
-        }
-        
-        window.location.href = url;
-    }
-
-    function updateStatistics() {
-        const tuNgay = document.getElementById('tuNgay').value;
-        const denNgay = document.getElementById('denNgay').value;
-        
-        let urlParams = new URLSearchParams();
-        if (tuNgay) urlParams.append('tuNgay', tuNgay);
-        if (denNgay) urlParams.append('denNgay', denNgay);
-        
-        const paramsStr = urlParams.toString();
-        
-        // Cập nhật nhãn biểu đồ
-        if (tuNgay && denNgay) {
-            document.getElementById('chartLabel').innerText = `Từ ${formatDateDisplay(tuNgay)} đến ${formatDateDisplay(denNgay)}`;
-        } else if (tuNgay) {
-            document.getElementById('chartLabel').innerText = `Từ ${formatDateDisplay(tuNgay)}`;
-        } else if (denNgay) {
-            document.getElementById('chartLabel').innerText = `Đến ${formatDateDisplay(denNgay)}`;
-        } else {
-            document.getElementById('chartLabel').innerText = "Tất cả thời gian";
-        }
-
-        // Tải dữ liệu tổng hợp
-        fetch(`/admin/thong-ke/data/tong-hop?${paramsStr}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('doanhThuTrongKy').innerText = new Intl.NumberFormat('vi-VN').format(data.doanhThu) + '₫';
-            document.getElementById('soDonTrongKy').innerText = data.soDon;
-        });
-
-        // Tải dữ liệu biểu đồ
-        fetch(`/admin/thong-ke/data/doanh-thu-ngay?${paramsStr}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            const labels = data.map(item => formatDateDisplay(item.ngay));
-            const values = data.map(item => item.doanhThu);
-
-            if (myChart) {
-                myChart.destroy();
-            }
-
-            const ctx = document.getElementById('doanhThuChart').getContext('2d');
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Doanh thu (VNĐ)',
-                        data: values,
-                        borderColor: '#8b4d4d',
-                        backgroundColor: 'rgba(139, 77, 77, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return new Intl.NumberFormat('vi-VN').format(value) + '₫';
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return new Intl.NumberFormat('vi-VN').format(context.raw) + '₫';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        });
-    }
-
-    function formatDateDisplay(dateStr) {
-        if (!dateStr) return "";
-        const parts = dateStr.split('-');
-        if (parts.length === 3) {
-            return `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-        return dateStr;
-    }
-</script>
+<script th:src="@{/js/admin/thong-ke.js}"></script>
 </body>
 </html>

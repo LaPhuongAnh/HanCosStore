@@ -1,0 +1,315 @@
+                                                       <!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Hancos — Thời Trang Tối Giản</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS riêng (static) -->
+    <link rel="stylesheet" th:href="@{/css/hancos-home.css}">
+    <link rel="stylesheet" th:href="@{/css/doitra.css}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">Hancos</a>
+
+        <div class="d-flex align-items-center gap-3 order-lg-3">
+            <!-- Search Trigger (Desktop) -->
+            <div class="dropdown d-none d-lg-block">
+                <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-search"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 300px;">
+                    <form th:action="@{/}" method="get">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" th:value="${query}" placeholder="Tìm sản phẩm...">
+                            <button class="btn btn-dark" type="submit">Tìm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Cart -->
+            <a class="nav-link position-relative p-0" th:href="@{/cart}">
+                <i class="fas fa-shopping-bag fs-5"></i>
+                <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                      th:style="'font-size: 0.6rem; display: ' + (${session.CART_COUNT != null and session.CART_COUNT > 0} ? 'inline-block' : 'none')"
+                      th:text="${session.CART_COUNT ?: 0}">0</span>
+            </a>
+
+            <!-- User -->
+            <div class="dropdown" th:if="${session.LOGIN_USER != null}">
+                <a class="nav-link p-0" href="#" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user-circle fs-5"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li class="dropdown-header border-bottom mb-2">
+                        <span class="fw-bold d-block" th:text="${session.LOGIN_USER.hoTen}">User</span>
+                        <small class="text-muted" th:text="${session.LOGIN_USER.email}"></small>
+                    </li>
+                    <li><a class="dropdown-item" th:href="@{/account/profile}">Thông tin tài khoản</a></li>
+                    <li><a class="dropdown-item" th:href="@{/order/my-orders}">Đơn hàng của tôi</a></li>
+                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
+                        <a class="dropdown-item text-danger fw-bold" th:href="@{/admin/dashboard}">Trang quản trị</a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-muted" th:href="@{/logout}">Đăng xuất</a></li>
+                </ul>
+            </div>
+            <a class="nav-link p-0" th:if="${session.LOGIN_USER == null}" th:href="@{/login}">
+                <i class="fas fa-user-circle fs-5"></i>
+            </a>
+
+            <button class="navbar-toggler p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+                <i class="fas fa-bars fs-4"></i>
+            </button>
+        </div>
+
+        <div id="nav" class="collapse navbar-collapse">
+            <ul class="navbar-nav mx-auto align-items-lg-center">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Trang chủ</a></li>
+                <th:block th:each="parent : ${categories}" th:if="${parent.danhMucCha == null}">
+                    <li class="nav-item dropdown" th:if="${not #lists.isEmpty(parent.danhMucCon)}">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" th:text="${parent.ten}">Danh mục</a>
+                        <ul class="dropdown-menu border-0 shadow-sm category-dropdown">
+                            <li>
+                                <div class="dropdown-inner">
+                                    <div class="dropdown-links">
+                                        <a class="dropdown-item"
+                                           th:each="child : ${parent.danhMucCon}"
+                                           th:href="@{/(danhMucId=${child.id})}"
+                                           th:text="${child.ten}">Danh mục con</a>
+                                    </div>
+                                    <div class="dropdown-preview" th:with="previews=${categoryPreviews[parent.id]}">
+                                        <div class="preview-grid" th:if="${previews != null and not #lists.isEmpty(previews)}">
+                                            <a class="preview-card"
+                                               th:each="pv : ${previews}"
+                                               th:href="@{/products/{id}(id=${pv.id})}">
+                                                <img th:src="${pv.anhChinh != null ? pv.anhChinh : '/images/no-image.png'}"
+                                                     th:alt="${pv.ten}"
+                                                     alt="product">
+                                                <div class="preview-name" th:text="${pv.ten}">Sản phẩm</div>
+                                                <div class="preview-price">
+                                                    <span th:if="${pv.giaMin != null}"
+                                                          th:text="${#numbers.formatDecimal(pv.giaMin,0,'COMMA',0,'POINT')} + '₫'">0₫</span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="preview-empty" th:if="${previews == null or #lists.isEmpty(previews)}">
+                                            Chưa có sản phẩm.
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item" th:if="${#lists.isEmpty(parent.danhMucCon)}">
+                        <a class="nav-link" th:href="@{/(danhMucId=${parent.id})}" th:text="${parent.ten}">Danh mục</a>
+                    </li>
+                </th:block>
+                <!-- Mobile Search -->
+                <li class="nav-item d-lg-none mt-3">
+                    <form th:action="@{/}" method="get">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" th:value="${query}" placeholder="Tìm sản phẩm...">
+                            <button class="btn btn-dark" type="submit"><i class="fas fa-search"></i></button>
+                        </div>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO BANNER -->
+<section class="hero-banner">
+    <div class="hero-content">
+        <h1>THỜI TRANG<br>TỐI GIẢN</h1>
+        <p>Phong cách hiện đại qua những điều đơn giản nhất.</p>
+        <a href="#product-section" class="btn">Khám phá ngay</a>
+    </div>
+</section>
+<section class="highlight-banner">
+    <div class="container">
+        <h2>HỖ TRỢ ĐỔI TRẢ TRONG 7 NGÀY</h2>
+        <p>Cam kết chất lượng - Đổi trả miễn phí</p>
+    </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<main class="policy-content">
+    <div class="container">
+        <div class="section">
+            <h2 class="section-title">I. CHÍNH SÁCH ĐỔI TRẢ MUA HÀNG ONLINE</h2>
+
+            <div class="subsection">
+                <h3>1. Chính sách áp dụng</h3>
+                <div class="info-box">
+                    <p>Áp dụng 01 lần đổi/trả cho mỗi đơn hàng</p>
+                    <p>Không áp dụng đổi trả với sản phẩm phụ kiện và đồ lót</p>
+                    <p>Sản phẩm nguyên giá được đổi sang sản phẩm khác còn hàng trên website</p>
+                    <p>Sản phẩm đổi có giá trị bằng hoặc lớn hơn (khách hàng bù chênh lệch nếu cao hơn)</p>
+                    <p>Không hỗ trợ đổi trả các sản phẩm giảm giá/khuyến mại</p>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3>2. Điều kiện đổi trả sản phẩm</h3>
+                <div class="info-box">
+                    <p>Đổi trả trong vòng 7 ngày kể từ ngày nhận hàng</p>
+                    <p>Sản phẩm còn nguyên tem, mác và chưa qua sử dụng</p>
+                    <p>Sản phẩm không bị rách, hư hại hoặc dơ bẩn</p>
+                    <p>Có đầy đủ hóa đơn mua hàng hoặc phiếu giao hàng</p>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3>3. Quy trình đổi trả sản phẩm</h3>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <strong>Liên hệ xác nhận đổi trả</strong>
+                            <p>Liên hệ qua Facebook, Hotline hoặc Email để thông báo nhu cầu đổi trả hàng</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <strong>Gửi sản phẩm về kho</strong>
+                            <p>Đóng gói sản phẩm cẩn thận và gửi về địa chỉ kho hàng của Hancos</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <strong>Kiểm tra và xử lý</strong>
+                            <p>Hancos kiểm tra sản phẩm và xử lý đổi trả trong vòng 2-3 ngày làm việc</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <strong>Giao sản phẩm mới</strong>
+                            <p>Hancos gửi sản phẩm mới hoặc hoàn tiền theo yêu cầu của khách hàng</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="note-list">
+                    <h4>Lưu ý quan trọng:</h4>
+                    <ul>
+                        <li>Kho online không giữ hàng trong thời gian khách gửi sản phẩm về đổi</li>
+                        <li>Khách hàng chịu phí vận chuyển khi gửi hàng về (trừ trường hợp lỗi do shop)</li>
+                        <li>Hancos chịu phí vận chuyển khi gửi sản phẩm mới cho khách</li>
+                        <li>Nếu sản phẩm đổi hết hàng, Hancos sẽ liên hệ để tư vấn sản phẩm khác</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">II. CHÍNH SÁCH ĐỔI TRẢ TẠI CỬA HÀNG</h2>
+
+            <div class="info-box">
+                <p>Chính sách đổi trả áp dụng trong vòng 7 ngày kể từ ngày mua hàng</p>
+                <p>Khách hàng được đổi không giới hạn số lần trong 7 ngày</p>
+                <p>Mang theo hóa đơn bán lẻ khi đến đổi hàng tại cửa hàng</p>
+                <p>Sản phẩm phải còn nguyên tem, nhãn mác và chưa qua sử dụng</p>
+                <p>Sản phẩm đồ lót, phụ kiện không áp dụng đổi trả vì lý do sức khỏe</p>
+                <p>Có thể đổi hàng tại tất cả các cửa hàng trong hệ thống Hancos</p>
+            </div>
+
+            <div class="warning-box">
+                <h4>Điều kiện về giá trị đơn hàng:</h4>
+                <p>• Sản phẩm sau khi đổi áp dụng giá bán tại thời điểm đổi hàng</p>
+                <p>• Hóa đơn mới phải có giá trị bằng hoặc cao hơn tổng giá trị sản phẩm cũ</p>
+                <p>• Khách hàng bù thêm tiền nếu giá trị đơn hàng mới cao hơn</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">III. CÁC TRƯỜNG HỢP ĐẶC BIỆT</h2>
+
+            <div class="subsection">
+                <h3>1. Sản phẩm lỗi do nhà sản xuất</h3>
+                <div class="info-box">
+                    <p>Được đổi trả miễn phí 100% chi phí vận chuyển</p>
+                    <p>Thời gian xử lý ưu tiên trong vòng 24-48 giờ</p>
+                    <p>Được hoàn tiền đầy đủ nếu không muốn đổi sản phẩm khác</p>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3>2. Giao sai sản phẩm</h3>
+                <div class="info-box">
+                    <p>Hancos chịu hoàn toàn chi phí đổi trả</p>
+                    <p>Giao lại sản phẩm đúng trong thời gian sớm nhất</p>
+                    <p>Tặng voucher xin lỗi cho lần mua hàng tiếp theo</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="container">
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="footer-logo mb-4">HANCOS</div>
+                <p class="small text-muted" style="max-width: 300px;">Hancos cung cấp những sản phẩm thời trang tối giản, chất lượng cao, giúp bạn tự tin hơn mỗi ngày.</p>
+            </div>
+            <div class="col-md-2">
+                <h6>Mua sắm</h6>
+                <ul>
+                    <li><a href="/">Tất cả sản phẩm</a></li>
+                    <li><a href="/cart">Giỏ hàng</a></li>
+                    <li><a href="/order/my-orders">Đơn hàng</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2">
+                <h6>Hỗ trợ</h6>
+                <ul>
+                    <li><a href="#">Chính sách đổi trả</a></li>
+                    <li><a href="#">Chính sách bảo mật</a></li>
+                    <li><a href="#">Điều khoản dịch vụ</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <h6>Theo dõi chúng tôi</h6>
+                <div class="contact-info">
+                    <p>📞 Hotline: <a href="tel:1900xxxx">1900 xxxx</a></p>
+                    <p>📧 Email: <a href="mailto:support@hancos.com">support@hancos.com</a></p>
+                    <p>🏪 Địa chỉ: [Địa chỉ cửa hàng]</p>
+                </div>
+                <div class="d-flex gap-3 justify-content-md-end mt-3">
+                    <a href="#" class="fs-5"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="fs-5"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="fs-5"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Hancos — Minimalist Fashion</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

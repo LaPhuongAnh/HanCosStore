@@ -5,7 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 public interface DanhMucRepository extends JpaRepository<DanhMuc, Integer> {
     Optional<DanhMuc> findByMa(String ma);
      List<DanhMuc> findByDanhMucCha_Id(Integer parentId);
@@ -23,5 +24,6 @@ public interface DanhMucRepository extends JpaRepository<DanhMuc, Integer> {
     List<DanhMuc> findByDanhMucCha_TenIgnoreCaseAndTrangThai(String parentTen, String trangThai);
 
     // Lấy con theo MÃ cha
+   Page<DanhMuc> findByDanhMucChaIsNull(Pageable pageable);
 
 }

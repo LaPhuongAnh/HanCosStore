@@ -1,0 +1,106 @@
+function updateQuantity(itemId, qty) {
+    if (qty < 1) return;
+
+    fetch(`/cart/update?itemId=${itemId}&soLuong=${qty}`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('cart-subtotal').innerText = new Intl.NumberFormat('vi-VN').format(data.total) + '₫';
+
+                if (data.discount > 0) {
+                    document.getElementById('discount-row').style.display = 'flex';
+                    document.getElementById('discount-value').innerText = '-' + new Intl.NumberFormat('vi-VN').format(data.discount) + '₫';
+                } else {
+                    document.getElementById('discount-row').style.display = 'none';
+                }
+                document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAfterDiscount) + '₫';
+
+                location.reload();
+            } else {
+                Swal.fire('Lỗi', data.message, 'error').then(() => location.reload());
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('Lỗi', 'Không thể kết nối với máy chủ', 'error');
+        });
+}
+
+function removeItem(itemId) {
+    Swal.fire({
+        title: 'Xác nhận xóa?',
+        text: "Bạn muốn xóa sản phẩm này khỏi giỏ hàng?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#1a1a1a',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/cart/remove?itemId=${itemId}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('cart-subtotal').innerText = new Intl.NumberFormat('vi-VN').format(data.total) + '₫';
+                        if (data.discount > 0) {
+                            document.getElementById('discount-row').style.display = 'flex';
+                            document.getElementById('discount-value').innerText = '-' + new Intl.NumberFormat('vi-VN').format(data.discount) + '₫';
+                        } else {
+                            document.getElementById('discount-row').style.display = 'none';
+                        }
+                        document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAfterDiscount) + '₫';
+                        location.reload();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Lỗi', 'Không thể kết nối với máy chủ', 'error');
+                });
+        }
+    });
+}
+
+function applyVoucher() {
+    const code = document.getElementById('voucher-code').value;
+    if (!code) return;
+
+    fetch(`/cart/apply-voucher?code=${code}`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(res => res.json())
+        .then(data => {
+            const msg = document.getElementById('voucher-message');
+            if (data.success) {
+                msg.className = 'small mt-2 text-success';
+                msg.innerText = data.message;
+
+                document.getElementById('discount-row').style.display = 'flex';
+                document.getElementById('discount-value').innerText = '-' + new Intl.NumberFormat('vi-VN').format(data.discount) + '₫';
+                document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAfterDiscount) + '₫';
+            } else {
+                msg.className = 'small mt-2 text-danger';
+                msg.innerText = data.message;
+
+                document.getElementById('discount-row').style.display = 'none';
+                const subtotal = parseInt(document.getElementById('cart-subtotal').innerText.replace(/\D/g, ''));
+                document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(subtotal) + '₫';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('Lỗi', 'Không thể kết nối với máy chủ', 'error');
+        });
+}
+
+function useSuggestedVoucher(code) {
+    document.getElementById('voucher-code').value = code;
+    applyVoucher();
+}

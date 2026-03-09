@@ -49,6 +49,17 @@ public class AuthController {
         return "register";
     }
 
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "forgot-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam(required = false) String token, Model model) {
+        model.addAttribute("token", token);
+        return "reset-password";
+    }
+
     @PostMapping("/register")
     public String register(@ModelAttribute RegisterRequestDTO registerRequest,
                            RedirectAttributes redirectAttributes) {

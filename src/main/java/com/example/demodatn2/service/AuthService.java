@@ -39,16 +39,24 @@ public class AuthService {
         taiKhoan.setSoDienThoai(request.getSoDienThoai());
         taiKhoan.setTrangThai("ACTIVE");
 
-        // Gán vai trò mặc định là USER
-        VaiTro userRole = vaiTroRepository.findByMa("USER")
-                .orElseThrow(() -> new RuntimeException("Vai trò USER không tồn tại!"));
-        taiKhoan.setVaiTros(new HashSet<>(Collections.singletonList(userRole)));
+        // Gán vai trò mặc định là CUSTOMER
+        VaiTro customerRole = vaiTroRepository.findByMa("CUSTOMER")
+            .orElseThrow(() -> new RuntimeException("Vai trò CUSTOMER không tồn tại!"));
+        taiKhoan.setVaiTros(new HashSet<>(Collections.singletonList(customerRole)));
 
         taiKhoanRepository.save(taiKhoan);
     }
 
     public boolean login(String tenDangNhap, String matKhau, HttpSession session) {
-        Optional<TaiKhoan> optUser = taiKhoanRepository.findByTenDangNhap(tenDangNhap);
+        if (tenDangNhap == null || tenDangNhap.trim().isEmpty()) {
+            return false;
+        }
+
+        String loginValue = tenDangNhap.trim();
+        Optional<TaiKhoan> optUser = taiKhoanRepository.findByTenDangNhap(loginValue);
+        if (optUser.isEmpty()) {
+            optUser = taiKhoanRepository.findByEmailIgnoreCase(loginValue);
+        }
         
         if (optUser.isPresent()) {
             TaiKhoan user = optUser.get();
@@ -83,6 +91,7 @@ public class AuthService {
 
                 List<String> roles = user.getVaiTros().stream()
                         .map(VaiTro::getMa)
+                        .filter(ma -> ma.equals("ADMIN") || ma.equals("STAFF") || ma.equals("CUSTOMER"))
                         .collect(Collectors.toList());
 
                 session.setAttribute("LOGIN_USER", dto);

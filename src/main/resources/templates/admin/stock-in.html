@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhap Kho Bien The - HANCOS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin-sidebar.css}">
+
+    <style>
+        :root {
+            --ink: #0f0e0d;
+            --smoke: #f5f2ee;
+            --parchment: #ede8df;
+            --brown-dark: #3b2a1a;
+            --brown-mid: #6b4c2a;
+            --brown-light: #b8936a;
+            --brown-pale: #d9c2a7;
+            --white: #faf9f7;
+            --rule: #c9b89e;
+            --muted: #8a7260;
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'Lato', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--smoke);
+            color: var(--ink);
+            font-family: var(--font-body);
+            font-weight: 300;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 40px 48px;
+            max-width: 1200px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--ink);
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        .page-title span {
+            display: block;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            color: var(--brown-mid);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .btn-back {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--brown-dark);
+            background: transparent;
+            border: 1.5px solid var(--brown-dark);
+            padding: 8px 20px;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-back:hover {
+            background: var(--brown-dark);
+            color: var(--white);
+        }
+
+        .info-card {
+            background: var(--white);
+            border: 1px solid var(--rule);
+            margin-bottom: 28px;
+        }
+
+        .info-card-inner {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+        }
+
+        .info-field {
+            padding: 20px 24px;
+            border-right: 1px solid var(--rule);
+        }
+        .info-field:last-child { border-right: none; }
+
+        .info-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--ink);
+        }
+
+        .info-value.stock-badge {
+            display: inline-block;
+            background: var(--brown-dark);
+            color: var(--white);
+            padding: 2px 12px;
+            font-size: 0.9rem;
+        }
+
+        .form-card {
+            background: var(--parchment);
+            border: 1px solid var(--rule);
+            margin-bottom: 28px;
+            padding: 28px 32px;
+        }
+
+        .form-section-label {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--brown-dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--rule);
+        }
+
+        .form-control-styled {
+            background: var(--white);
+            border: 1.5px solid var(--rule);
+            border-radius: 0;
+            color: var(--ink);
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            padding: 10px 14px;
+            width: 100%;
+        }
+
+        .form-label-styled {
+            font-family: var(--font-mono);
+            font-size: 0.67rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--brown-mid);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .btn-submit {
+            background: var(--brown-dark);
+            color: var(--white);
+            border: none;
+            border-radius: 0;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 13px 24px;
+            width: 100%;
+            cursor: pointer;
+        }
+        .btn-submit:hover { background: var(--brown-mid); }
+
+        .alert-styled {
+            border-radius: 0;
+            border-left: 4px solid;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+        .alert-success-styled {
+            background: #f0ebe0;
+            border-color: var(--brown-mid);
+            color: var(--brown-dark);
+        }
+        .alert-danger-styled {
+            background: #f5e8e4;
+            border-color: #8b3a2a;
+            color: #5c1f14;
+        }
+
+        .history-card {
+            background: var(--white);
+            border: 1px solid var(--rule);
+        }
+
+        .history-header {
+            padding: 16px 24px;
+            border-bottom: 2px solid var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-title {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin: 0;
+        }
+
+        .history-count {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            background: var(--brown-light);
+            color: var(--white);
+            padding: 2px 8px;
+            letter-spacing: 0.08em;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .history-table thead tr { background: var(--ink); }
+
+        .history-table thead th {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--brown-pale);
+            padding: 12px 20px;
+            font-weight: 400;
+        }
+
+        .history-table tbody tr { border-bottom: 1px solid var(--parchment); }
+        .history-table tbody td {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--ink);
+            padding: 14px 20px;
+        }
+
+        .qty-chip {
+            display: inline-block;
+            background: var(--brown-dark);
+            color: var(--white);
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            padding: 2px 10px;
+            letter-spacing: 0.05em;
+        }
+
+        .empty-row td {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--muted);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+        }
+
+        .brand-mark {
+            position: fixed;
+            bottom: 24px;
+            right: 32px;
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            color: var(--rule);
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content { margin-left: 0; padding: 24px 20px; }
+            .info-card-inner { grid-template-columns: 1fr 1fr; }
+            .info-field { border-bottom: 1px solid var(--rule); }
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{admin/fragments/sidebar :: sidebar('products')}"></div>
+
+<div class="main-content">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <span>Quan ly kho hang</span>
+            Nhap Kho Bien The
+        </h1>
+        <a th:href="@{/admin/san-pham/view/{id}(id=${bienThe.sanPham.id})}" class="btn-back">
+            ? Quay lai san pham
+        </a>
+    </div>
+
+    <div class="info-card">
+        <div class="info-card-inner">
+            <div class="info-field">
+                <div class="info-label">Ma SKU</div>
+                <div class="info-value" th:text="${bienThe.maSKU}">SKU-00123</div>
+            </div>
+            <div class="info-field">
+                <div class="info-label">Mau sac</div>
+                <div class="info-value" th:text="${bienThe.mauSac}">Den</div>
+            </div>
+            <div class="info-field">
+                <div class="info-label">Kich co</div>
+                <div class="info-value" th:text="${bienThe.kichCo}">L</div>
+            </div>
+            <div class="info-field">
+                <div class="info-label">Ton hien tai</div>
+                <div class="info-value">
+                    <span class="stock-badge" th:text="${bienThe.soLuongTon}">42</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <div class="form-section-label">Cap nhat ton kho</div>
+
+        <form th:action="@{/admin/san-pham/{id}/them-so-luong(id=${bienThe.sanPham.id})}" method="post">
+            <input type="hidden" name="bienTheId" th:value="${bienThe.id}">
+
+            <div th:if="${successMessage}" class="alert-styled alert-success-styled" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert-styled alert-danger-styled" th:text="${errorMessage}"></div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label-styled">So luong nhap them</label>
+                    <input type="number" min="1" step="1" class="form-control-styled"
+                           name="soLuongThem" placeholder="Nhap so luong..." required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label-styled">Ghi chu</label>
+                    <input type="text" class="form-control-styled" name="ghiChu" maxlength="300" placeholder="Nhap ghi chu (neu co)">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn-submit">Cap nhat ton kho</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="history-card">
+        <div class="history-header">
+            <h2 class="history-title">Lich Su Nhap Kho</h2>
+            <span class="history-count">LOG</span>
+        </div>
+        <div class="table-responsive">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Thoi gian</th>
+                        <th>So luong nhap</th>
+                        <th>Admin thuc hien</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ls : ${lichSuNhapKho}">
+                        <td th:text="${ls.ngayTao != null ? #temporals.format(ls.ngayTao, 'dd/MM/yyyy HH:mm:ss') : '-'}"></td>
+                        <td><span class="qty-chip" th:text="${ls.soLuongNhap}"></span></td>
+                        <td th:text="${ls.nguoiNhap}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(lichSuNhapKho)}" class="empty-row">
+                        <td colspan="3">- Chua co lich su nhap kho -</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div class="brand-mark">HANCOS</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

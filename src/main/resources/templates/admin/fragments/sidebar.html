@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div class="sidebar" th:fragment="sidebar(active)">
+    <a th:href="@{/}" class="sidebar-brand">
+        <i class="fas fa-shopping-bag me-2"></i>
+        <span>HANCOS</span>
+    </a>
+
+    <nav class="nav flex-column">
+
+        <a class="nav-link"
+           th:classappend="${active == 'dashboard'} ? ' active'"
+           th:href="@{/admin/dashboard}">
+            <i class="fas fa-th-large"></i><span>Dashboard</span>
+        </a>
+
+        <a class="nav-link"
+           th:classappend="${active == 'products'} ? ' active'"
+           th:href="@{/san-pham}">
+            <i class="fas fa-box"></i><span>Sản phẩm</span>
+        </a>
+
+        <a class="nav-link"
+           th:classappend="${active == 'pos'} ? ' active'"
+           th:href="@{/admin/ban-hang-tai-quay}">
+            <i class="fas fa-cash-register"></i><span>Bán hàng tại quầy</span>
+        </a>
+
+        <a class="nav-link"
+           th:if="${session.ROLES != null and #lists.contains(session.ROLES,'ADMIN')}"
+           th:classappend="${active == 'categories'} ? ' active'"
+           th:href="@{/admin/categories}">
+            <i class="fas fa-list"></i><span>Danh mục</span>
+        </a>
+
+        <a class="nav-link"
+           th:if="${session.ROLES != null and #lists.contains(session.ROLES,'ADMIN')}"
+           th:classappend="${active == 'vouchers'} ? ' active'"
+           th:href="@{/admin/vouchers}">
+            <i class="fas fa-ticket-alt"></i><span>Voucher</span>
+        </a>
+
+        <a class="nav-link"
+           th:if="${session.ROLES != null and #lists.contains(session.ROLES,'ADMIN')}"
+           th:classappend="${active == 'thongke'} ? ' active'"
+           th:href="@{/admin/thong-ke}">
+            <i class="fas fa-chart-line"></i><span>Thống kê</span>
+        </a>
+
+        <a class="nav-link"
+           th:classappend="${active == 'orders'} ? ' active'"
+           th:href="@{/admin/orders}">
+            <i class="fas fa-shopping-cart"></i><span>Đơn hàng</span>
+        </a>
+
+        <a class="nav-link"
+           th:if="${session.ROLES != null and #lists.contains(session.ROLES,'ADMIN')}"
+           th:classappend="${active == 'users'} ? ' active'"
+           th:href="@{/admin/users}">
+            <i class="fas fa-users"></i><span>Tài khoản</span>
+        </a>
+
+        <div class="mt-auto pt-5">
+            <hr class="text-white-50">
+            <a class="nav-link text-danger" th:href="@{/logout}">
+                <i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span>
+            </a>
+        </div>
+
+    </nav>
+</div>
+
+</body>
+</html>

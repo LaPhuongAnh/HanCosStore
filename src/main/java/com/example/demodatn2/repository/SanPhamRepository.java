@@ -3,6 +3,8 @@ package com.example.demodatn2.repository;
 import com.example.demodatn2.entity.SanPham;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -51,6 +53,18 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
     List<SanPham> searchAdmin(@Param("keyword") String keyword, 
                               @Param("danhMucId") Integer danhMucId, 
                               @Param("trangThai") String trangThai);
+
+    @Query("SELECT sp FROM SanPham sp WHERE (sp.daXoa = false OR sp.daXoa IS NULL) " +
+           "AND (:keyword IS NULL OR :keyword = '' OR " +
+           "     LOWER(sp.ten) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "     LOWER(sp.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "     LOWER(sp.chatLieu) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:danhMucId IS NULL OR sp.danhMuc.id = :danhMucId OR sp.danhMuc.danhMucCha.id = :danhMucId) " +
+           "AND (:trangThai IS NULL OR :trangThai = '' OR sp.trangThai = :trangThai)")
+    Page<SanPham> searchAdminPage(@Param("keyword") String keyword,
+                                  @Param("danhMucId") Integer danhMucId,
+                                  @Param("trangThai") String trangThai,
+                                  Pageable pageable);
 
     // Tìm kiếm sản phẩm cho khách hàng (chỉ lấy ACTIVE và chưa xóa)
     @EntityGraph(attributePaths = {"hinhAnhSanPhams"})

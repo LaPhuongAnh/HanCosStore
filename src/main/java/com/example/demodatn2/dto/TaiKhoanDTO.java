@@ -20,4 +20,5 @@ public class TaiKhoanDTO {
     private String trangThai;
     private java.time.LocalDateTime ngayTao;
     private List<Integer> vaiTroIds;
+    private List<String> vaiTroMas;
 }

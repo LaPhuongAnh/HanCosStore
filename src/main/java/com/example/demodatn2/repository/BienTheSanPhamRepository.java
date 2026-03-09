@@ -38,4 +38,13 @@ public interface BienTheSanPhamRepository extends JpaRepository<BienTheSanPham, 
     """)
     List<String> findDistinctMauSac(Integer sanPhamId);
 
+        @Query("""
+                select distinct v.kichCo
+                from BienTheSanPham v
+                where v.sanPham.id = ?1
+                    and (v.trangThai is null or lower(v.trangThai) = 'active')
+                order by v.kichCo
+        """)
+        List<String> findDistinctKichCo(Integer sanPhamId);
+
 }

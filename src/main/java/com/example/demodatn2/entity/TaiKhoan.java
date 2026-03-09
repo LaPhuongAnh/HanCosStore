@@ -55,7 +55,8 @@ public class TaiKhoan {
     @JoinTable(
         name = "TAI_KHOAN_VAI_TRO",
         joinColumns = @JoinColumn(name = "TaiKhoanId"),
-        inverseJoinColumns = @JoinColumn(name = "VaiTroId")
+        inverseJoinColumns = @JoinColumn(name = "VaiTroId"),
+        uniqueConstraints = @UniqueConstraint(columnNames = {"TaiKhoanId", "VaiTroId"})
     )
     private Set<VaiTro> vaiTros = new HashSet<>();
 }

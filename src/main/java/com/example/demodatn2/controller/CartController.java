@@ -56,6 +56,10 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> applyVoucher(@RequestParam String code, HttpSession session) {
         try {
+            if (code == null || code.trim().isEmpty()) {
+                return Map.of("success", false, "message", "Vui lòng nhập mã giảm giá");
+            }
+
             List<CartItemDTO> items = cartService.getCartItems(session);
             BigDecimal total = cartService.getTotalAmount(items);
             
@@ -63,7 +67,7 @@ public class CartController {
             if (voucherOpt.isPresent()) {
                 var voucher = voucherOpt.get();
                 BigDecimal discount = voucherService.calculateDiscount(voucher, total);
-                session.setAttribute("APPLIED_VOUCHER_CODE", code);
+                session.setAttribute("APPLIED_VOUCHER_CODE", voucher.getMa());
                 session.setAttribute("DISCOUNT_AMOUNT", discount);
                 
                 return Map.of(

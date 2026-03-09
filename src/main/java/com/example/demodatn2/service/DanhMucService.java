@@ -5,7 +5,7 @@ import com.example.demodatn2.entity.DanhMuc;
 
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.data.domain.Page;
 public interface    DanhMucService {
     List<DanhMuc> getAll();
     List<DanhMucDTO> getAllDTOs();
@@ -17,5 +17,5 @@ public interface    DanhMucService {
     DanhMuc save(DanhMuc danhMuc);
     void saveDTO(DanhMucDTO dto);
     void deleteById(Integer id);
-
+ Page<DanhMuc> findByDanhMucChaIsNull(int page, int size);
 }

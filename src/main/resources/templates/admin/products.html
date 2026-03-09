@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -112,6 +112,32 @@
             border-color: var(--primary-color);
         }
 
+        .pagination { gap: 0.35rem; }
+        .pagination .page-link {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 0.45rem 0.85rem;
+            color: #444;
+            font-weight: 600;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+        }
+        .pagination .page-link:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(139, 77, 77, 0.08);
+        }
+        .pagination .page-item.active .page-link {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(139, 77, 77, 0.25);
+        }
+        .pagination .page-item.disabled .page-link {
+            color: #bbb;
+            background: #f6f6f6;
+            box-shadow: none;
+        }
+
         @media (max-width: 992px) {
             .sidebar { width: 80px; padding: 2rem 0.5rem; }
             .sidebar-brand span, .nav-link span { display: none; }
@@ -121,37 +147,7 @@
 </head>
 <body>
 
-<div class="sidebar">
-    <a th:href="@{/}" class="sidebar-brand">
-        <i class="fas fa-shopping-bag me-2"></i><span>HANCOS</span>
-    </a>
-    <nav class="nav flex-column">
-        <a class="nav-link" th:href="@{/admin/dashboard}">
-            <i class="fas fa-th-large"></i><span>Dashboard</span>
-        </a>
-        <a class="nav-link active" th:href="@{/san-pham}">
-            <i class="fas fa-box"></i><span>Sản phẩm</span>
-        </a>
-        <a class="nav-link" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/categories}">
-            <i class="fas fa-list"></i><span>Danh mục</span>
-        </a>
-        <a class="nav-link" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/thong-ke}">
-            <i class="fas fa-chart-line"></i><span>Thống kê</span>
-        </a>
-        <a class="nav-link" th:href="@{/admin/orders}">
-            <i class="fas fa-shopping-cart"></i><span>Đơn hàng</span>
-        </a>
-        <a class="nav-link" th:if="${session.ROLES != null and #lists.contains(session.ROLES, 'ADMIN')}" th:href="@{/admin/users}">
-            <i class="fas fa-users"></i><span>Tài khoản</span>
-        </a>
-        <div class="mt-auto pt-5">
-            <hr class="text-white-50">
-            <a class="nav-link text-danger" th:href="@{/logout}">
-                <i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span>
-            </a>
-        </div>
-    </nav>
-</div>
+<div th:replace="~{admin/fragments/sidebar :: sidebar('products')}"></div>
 
 <div class="main-content">
     <header class="top-header">
@@ -270,6 +266,33 @@
                     </tbody>
                 </table>
             </div>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 border-top">
+                <div class="small text-muted">
+                    Trang <span th:text="${currentPage}">1</span> / <span th:text="${totalPages}">1</span>
+                </div>
+                <nav th:if="${totalPages > 1}" aria-label="Product pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 1} ? ' disabled'">
+                            <a class="page-link"
+                               th:href="@{/san-pham(page=${currentPage - 1}, size=${pageSize}, keyword=${keyword}, danhMucId=${selectedDanhMucId}, trangThai=${selectedTrangThai})}">
+                                Trước
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+                            th:classappend="${i == currentPage} ? ' active'">
+                            <a class="page-link"
+                               th:href="@{/san-pham(page=${i}, size=${pageSize}, keyword=${keyword}, danhMucId=${selectedDanhMucId}, trangThai=${selectedTrangThai})}"
+                               th:text="${i}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages} ? ' disabled'">
+                            <a class="page-link"
+                               th:href="@{/san-pham(page=${currentPage + 1}, size=${pageSize}, keyword=${keyword}, danhMucId=${selectedDanhMucId}, trangThai=${selectedTrangThai})}">
+                                Sau
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
         </div>
     </div>
 </div>
@@ -306,3 +329,4 @@
 </script>
 </body>
 </html>
+

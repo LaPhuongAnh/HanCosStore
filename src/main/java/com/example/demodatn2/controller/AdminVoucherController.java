@@ -5,11 +5,19 @@ import com.example.demodatn2.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 
 @Controller
 @RequestMapping("/admin/vouchers")
@@ -33,32 +41,41 @@ public class AdminVoucherController {
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Integer id, Model model) {
         MaGiamGia voucher = voucherService.getById(id)
-                .orElseThrow(() -> new RuntimeException("Voucher không tồn tại: " + id));
+                .orElseThrow(() -> new RuntimeException("Voucher khong ton tai: " + id));
         model.addAttribute("voucher", voucher);
         return "admin/voucher-form";
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute MaGiamGia voucher, 
+    public String save(@ModelAttribute MaGiamGia voucher,
                        @RequestParam("batDauStr") String batDauStr,
                        @RequestParam("ketThucStr") String ketThucStr,
+                       Model model,
                        RedirectAttributes redirectAttributes) {
         try {
-            // Chuyển đổi từ String (datetime-local) sang Instant
-            if (!batDauStr.isEmpty()) {
-                voucher.setBatDauLuc(LocalDateTime.parse(batDauStr).atZone(ZoneId.systemDefault()).toInstant());
+            if (batDauStr == null || batDauStr.trim().isEmpty() || ketThucStr == null || ketThucStr.trim().isEmpty()) {
+                throw new IllegalArgumentException("Vui long nhap day du thoi gian bat dau va ket thuc.");
             }
-            if (!ketThucStr.isEmpty()) {
-                voucher.setKetThucLuc(LocalDateTime.parse(ketThucStr).atZone(ZoneId.systemDefault()).toInstant());
-            }
-            
+
+            voucher.setBatDauLuc(LocalDateTime.parse(batDauStr).atZone(ZoneId.systemDefault()).toInstant());
+            voucher.setKetThucLuc(LocalDateTime.parse(ketThucStr).atZone(ZoneId.systemDefault()).toInstant());
+
             voucherService.save(voucher);
-            redirectAttributes.addFlashAttribute("successMessage", "Lưu voucher thành công!");
+            redirectAttributes.addFlashAttribute("successMessage", "Luu voucher thanh cong!");
+            return "redirect:/admin/vouchers";
+        } catch (DateTimeParseException e) {
+            model.addAttribute("voucher", voucher);
+            model.addAttribute("batDauStr", batDauStr);
+            model.addAttribute("ketThucStr", ketThucStr);
+            model.addAttribute("errorMessage", "Dinh dang ngay gio khong hop le. Vui long chon lai.");
+            return "admin/voucher-form";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
-            return "redirect:/admin/vouchers/add";
+            model.addAttribute("voucher", voucher);
+            model.addAttribute("batDauStr", batDauStr);
+            model.addAttribute("ketThucStr", ketThucStr);
+            model.addAttribute("errorMessage", e.getMessage());
+            return "admin/voucher-form";
         }
-        return "redirect:/admin/vouchers";
     }
 
     @DeleteMapping("/{id}")

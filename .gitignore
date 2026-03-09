@@ -1,4 +1,4 @@
-HELP.md
+ HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -31,3 +31,30 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Additional ignores
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Java artifacts
+*.class
+*.jar
+
+# Ignore local application properties (may contain passwords/keys)
+/src/main/resources/application.properties
+/src/main/resources/application-local.properties
+
+# IDE and editor
+.vscode/
+.idea/
+*.iml
+
+# OneDrive temp files
+~$*
+
+# Target directory
+/target/

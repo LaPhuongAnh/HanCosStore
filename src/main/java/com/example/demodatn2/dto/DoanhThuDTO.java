@@ -17,4 +17,5 @@ public class DoanhThuDTO {
     private Long soSanPhamDaBan;
     private BigDecimal doanhThuHomNay;
     private Long soDonHomNay;
+    private Long soKhachHang;
 }

@@ -1,0 +1,42 @@
+.cart-container { padding: 4rem 0; min-height: 60vh; }
+.cart-table { background: white; overflow: hidden; border: 1px solid #eee; }
+.cart-table th { 
+    background: #fdfdfd; 
+    border: none; 
+    padding: 1.5rem; 
+    font-size: 0.75rem; 
+    text-transform: uppercase; 
+    letter-spacing: 1.5px; 
+    font-weight: 700;
+    color: #888;
+    border-bottom: 1px solid #eee;
+}
+.cart-table td { padding: 1.5rem; vertical-align: middle; border-bottom: 1px solid #eee; }
+.product-img { width: 80px; height: 100px; object-fit: cover; background: #f8f9fa; }
+.product-name { font-weight: 700; color: #1a1a1a; text-decoration: none; display: block; margin-bottom: 0.2rem; font-size: 0.95rem; }
+.product-variant { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+.qty-input { width: 60px; height: 40px; text-align: center; border: 1px solid #ddd; padding: 5px; font-weight: 600; font-size: 0.9rem; }
+.btn-remove { color: #888; cursor: pointer; background: none; border: none; transition: all 0.2s; font-size: 0.9rem; }
+.btn-remove:hover { color: #8b4d4d; transform: scale(1.1); }
+.cart-summary { background: white; padding: 2.5rem; border: 1px solid #eee; }
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 1.25rem; font-size: 0.9rem; }
+.summary-total { font-size: 1.25rem; font-weight: 800; color: #1a1a1a; border-top: 1px solid #eee; padding-top: 1.5rem; margin-top: 1.5rem; letter-spacing: -0.5px; }
+.btn-checkout { 
+    background: #1a1a1a; 
+    color: white; 
+    border: none; 
+    padding: 1.25rem; 
+    width: 100%; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    margin-top: 2rem; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    text-decoration: none; 
+    display: block; 
+    text-align: center; 
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+}
+.btn-checkout:hover { background: #8b4d4d; color: white; transform: translateY(-2px); }
+.price-col { font-weight: 600; color: #1a1a1a; font-size: 0.95rem; }
+.total-col { font-weight: 700; color: #8b4d4d; font-size: 0.95rem; }
