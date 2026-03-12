@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+// Job định kỳ cập nhật trạng thái đơn hàng theo quy tắc thời gian của hệ thống.
 public class OrderStatusScheduler {
 
     private final OrderService orderService;

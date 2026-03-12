@@ -1,12 +1,12 @@
 function deleteVoucher(id) {
     Swal.fire({
-        title: 'Xác nhận xóa?',
-        text: "Voucher này sẽ bị xóa vĩnh viễn!",
-        icon: 'warning',
+        title: 'Xác nhận vô hiệu hóa?',
+        text: "Bạn muốn chuyển voucher này sang trạng thái Inactive?",
+        icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
+        confirmButtonColor: '#f0ad4e',
         cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Xóa ngay',
+        confirmButtonText: 'Đồng ý',
         cancelButtonText: 'Hủy'
     }).then((result) => {
         if (result.isConfirmed) {
@@ -15,10 +15,10 @@ function deleteVoucher(id) {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             }).then(res => res.text()).then(data => {
                 if (data === 'SUCCESS') {
-                    Swal.fire('Đã xóa!', 'Voucher đã được xóa thành công.', 'success')
+                    Swal.fire('Thành công!', 'Voucher đã được chuyển sang Inactive.', 'success')
                         .then(() => location.reload());
                 } else {
-                    Swal.fire('Lỗi!', 'Không thể xóa voucher: ' + data, 'error');
+                    Swal.fire('Lỗi!', 'Không thể vô hiệu hóa voucher: ' + data, 'error');
                 }
             });
         }

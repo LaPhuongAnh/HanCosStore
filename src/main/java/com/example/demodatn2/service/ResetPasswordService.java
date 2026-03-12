@@ -18,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+// Service xử lý luồng quên mật khẩu: tạo token, gửi mail, đổi mật khẩu mới.
 public class ResetPasswordService {
 
     private final TaiKhoanRepository taiKhoanRepository;

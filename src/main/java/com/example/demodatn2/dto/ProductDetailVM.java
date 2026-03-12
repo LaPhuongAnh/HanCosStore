@@ -1,6 +1,5 @@
 package com.example.demodatn2.dto;
 
-import com.example.demodatn2.entity.DanhMuc;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +19,11 @@ public class ProductDetailVM {
     private String moTa;
     private String chatLieu;
     private String gioiTinh;
-    private DanhMuc danhMuc;
+    // Flat DanhMuc fields (avoid passing lazy entity outside transaction)
+    private Integer danhMucId;
+    private String danhMucTen;
+    private Integer danhMucChaId;
+    private String danhMucChaTen;
 
     private List<String> hinhAnhGallery;
     private Map<String, String> hinhAnhTheoMau; // Key: Tên màu, Value: Đường dẫn ảnh

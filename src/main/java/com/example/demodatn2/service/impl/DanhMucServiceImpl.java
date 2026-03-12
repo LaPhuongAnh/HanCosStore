@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 @Service
 @RequiredArgsConstructor
+// Triển khai nghiệp vụ danh mục: thao tác CRUD, map DTO và truy vấn danh mục cha/con.
 public class DanhMucServiceImpl implements DanhMucService {
 
     private final DanhMucRepository danhMucRepository;
@@ -136,4 +137,25 @@ public Page<DanhMuc> findByDanhMucChaIsNull(int page, int size) {
 
     return categoryPage;
 }
+
+    @Override
+    public long countAll() { return danhMucRepository.count(); }
+
+    @Override
+    public long countParents() { return danhMucRepository.countByDanhMucChaIsNull(); }
+
+    @Override
+    public long countChildren() { return danhMucRepository.countByDanhMucChaIsNotNull(); }
+
+    @Override
+    public long countActive() { return danhMucRepository.countByTrangThai("ACTIVE"); }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<DanhMuc> searchParents(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<DanhMuc> categoryPage = danhMucRepository.searchParents(keyword, pageable);
+        categoryPage.getContent().forEach(dm -> dm.getDanhMucCon().size());
+        return categoryPage;
+    }
 }

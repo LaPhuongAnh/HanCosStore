@@ -74,8 +74,8 @@
                                     <a th:href="@{/admin/vouchers/edit/{id}(id=${v.id})}" class="btn-action" title="Chỉnh sửa">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button class="btn-action btn-delete" title="Xóa" th:onclick="'deleteVoucher(' + ${v.id} + ')'">
-                                        <i class="fas fa-trash"></i>
+                                    <button class="btn-action btn-delete" title="Vô hiệu hóa" th:onclick="'deleteVoucher(' + ${v.id} + ')'">
+                                        <i class="fas fa-ban"></i>
                                     </button>
                                 </div>
                             </td>

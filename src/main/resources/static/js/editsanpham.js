@@ -1,5 +1,6 @@
 const initialProduct = window.initialProduct || {};
 const API_URL = '/api';
+const pendingUploads = new Set();
 let activeGalleryImageIndex = null;
 let activeColorImageIndex = null;
 
@@ -365,39 +366,52 @@ function removeVariant(btn) {
     reindexVariantsUI();
 }
 
+function trackUpload(promise) {
+    pendingUploads.add(promise);
+    promise.finally(() => pendingUploads.delete(promise));
+    return promise;
+}
+
 // ===== Upload (shared) =====
 async function uploadFile(input, hiddenInputName, previewId) {
-    const file = input.files && input.files[0];
-    if (!file) return;
+    const uploadPromise = (async () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
 
-    // local preview
-    const preview = document.getElementById(previewId);
-    if (preview) {
-        preview.src = URL.createObjectURL(file);
-        preview.classList.add('show');
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-        const res = await fetch(`${API_URL}/upload`, {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body: formData
-        });
-
-        if (res.ok) {
-            const path = await res.text();
-            const hidden = document.querySelector(`input[name="${hiddenInputName}"]`);
-            if (hidden) hidden.value = path;
-        } else {
-            const msg = await res.text();
-            Swal.fire('Lỗi!', `Upload thất bại: ${msg}`, 'error');
+        // local preview
+        const preview = document.getElementById(previewId);
+        if (preview) {
+            preview.src = URL.createObjectURL(file);
+            preview.classList.add('show');
         }
-    } catch (e) {
-        Swal.fire('Lỗi!', `Upload lỗi kết nối: ${e.message}`, 'error');
-    }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch(`${API_URL}/upload`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            });
+
+            if (res.ok) {
+                const path = await res.text();
+                const item = input.closest('.image-item');
+                const hidden = item
+                    ? item.querySelector('input[type="hidden"]')
+                    : document.querySelector(`input[name="${hiddenInputName}"]`);
+                if (hidden) hidden.value = path;
+            } else {
+                const msg = await res.text();
+                Swal.fire('Lỗi!', `Upload thất bại: ${msg}`, 'error');
+            }
+        } catch (e) {
+            Swal.fire('Lỗi!', `Upload lỗi kết nối: ${e.message}`, 'error');
+        }
+    })();
+
+    return trackUpload(uploadPromise);
 }
 
 // ===== Images Gallery =====
@@ -696,6 +710,10 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     document.getElementById('loading').classList.add('show');
 
+    if (pendingUploads.size > 0) {
+        await Promise.allSettled(Array.from(pendingUploads));
+    }
+
     // Ensure latest SKU update for all variants before submit
     document.querySelectorAll('#variantsList .variant-item').forEach(item => updateSKUItem(item));
 
@@ -725,13 +743,19 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
             duongDanAnh: el.querySelector('input[type="hidden"]').value,
             thuTu: parseInt(el.querySelector('input[name*=".thuTu"]').value) || (i + 1),
             laAnhChinh: !!el.querySelector('input[type="checkbox"]')?.checked
-        })),
+        })).filter(img => img.duongDanAnh && img.duongDanAnh.trim() !== ''),
 
         hinhAnhMauSacs: Array.from(document.querySelectorAll('#colorImagesList .image-item')).map(el => ({
             mauSac: el.querySelector('select[name*=".mauSac"]').value,
             duongDanAnh: el.querySelector('input[type="hidden"]').value
-        }))
+        })).filter(img => img.mauSac && img.mauSac.trim() !== '' && img.duongDanAnh && img.duongDanAnh.trim() !== '')
     };
+
+    if (dto.hinhAnhSanPhams.length === 0) {
+        document.getElementById('loading').classList.remove('show');
+        Swal.fire('Thiếu ảnh', 'Vui lòng tải lên ít nhất 1 ảnh gallery trước khi lưu.', 'warning');
+        return;
+    }
 
     try {
         const res = await fetch(`${API_URL}/san-pham/${dto.id}`, {

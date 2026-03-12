@@ -12,7 +12,10 @@ import com.example.demodatn2.repository.HinhAnhSanPhamRepository;
 import com.example.demodatn2.repository.SanPhamRepository;
 import com.example.demodatn2.service.HomeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+// Triển khai dữ liệu trang chủ: lọc sản phẩm, phân trang và dựng chi tiết sản phẩm cho UI.
 public class HomeServiceimpl implements HomeService {
     private final SanPhamRepository sanPhamRepository;
     private final HinhAnhSanPhamRepository hinhAnhSanPhamRepository;
@@ -29,6 +33,7 @@ public class HomeServiceimpl implements HomeService {
     private final DanhMucRepository danhMucRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<HomeProductVM> getHomeProducts(Integer danhMucId, String keyword) {
         List<SanPham> products;
 
@@ -85,16 +90,70 @@ public class HomeServiceimpl implements HomeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<HomeProductVM> getHomeProductsPage(Integer danhMucId, String keyword, Pageable pageable) {
+        Page<SanPham> page;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            page = sanPhamRepository.searchActivePage(keyword.trim(), pageable);
+        } else if (danhMucId != null) {
+            Optional<DanhMuc> dmOpt = danhMucRepository.findById(danhMucId);
+            if (dmOpt.isPresent()) {
+                DanhMuc dm = dmOpt.get();
+                if (dm.getDanhMucCha() == null) {
+                    List<Integer> ids = new ArrayList<>();
+                    ids.add(dm.getId());
+                    if (dm.getDanhMucCon() != null) {
+                        for (DanhMuc con : dm.getDanhMucCon()) {
+                            ids.add(con.getId());
+                        }
+                    }
+                    page = sanPhamRepository.findActiveByDanhMucIdsPage(ids, pageable);
+                } else {
+                    page = sanPhamRepository.findActiveByDanhMucIdPage(danhMucId, pageable);
+                }
+            } else {
+                page = sanPhamRepository.findActiveForListingPage(pageable);
+            }
+        } else {
+            page = sanPhamRepository.findActiveForListingPage(pageable);
+        }
+
+        return page.map(sp -> {
+            String anhChinh = hinhAnhSanPhamRepository
+                    .findFirstBySanPham_IdOrderByLaAnhChinhDescThuTuAscIdAsc(sp.getId())
+                    .map(HinhAnhSanPham::getDuongDanAnh)
+                    .orElse(null);
+            BienTheSanPhamRepository.PriceRange range = bienTheSanPhamRepository.findPriceRange(sp.getId());
+            List<String> mauSac = bienTheSanPhamRepository.findDistinctMauSac(sp.getId());
+            List<String> kichCos = bienTheSanPhamRepository.findDistinctKichCo(sp.getId());
+            return HomeProductVM.builder()
+                    .id(sp.getId())
+                    .ten(sp.getTen())
+                    .anhChinh(anhChinh)
+                    .giaMin(range != null ? range.getMinGia() : null)
+                    .giaMax(range != null ? range.getMaxGia() : null)
+                    .mauSacs(mauSac)
+                    .kichCos(kichCos)
+                    .maDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getMa() : null)
+                    .idDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getId() : null)
+                    .danhMuc(sp.getDanhMuc())
+                    .build();
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ProductDetailVM getProductDetail(Integer id) {
         // Fetch SanPham with each collection separately to avoid MultipleBagFetchException
         SanPham sp = sanPhamRepository.findDetailWithBienTheById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-        // Trigger loading of other collections (already fetched via EntityGraph in these calls)
-        sanPhamRepository.findDetailWithHinhAnhMauSacById(id);
-        sanPhamRepository.findDetailWithHinhAnhSanPhamById(id);
+        // Fetch other collections into their own entities, then copy into sp
+        SanPham spWithMauSac = sanPhamRepository.findDetailWithHinhAnhMauSacById(id).orElse(sp);
+        SanPham spWithGallery = sanPhamRepository.findDetailWithHinhAnhSanPhamById(id).orElse(sp);
 
-        List<String> gallery = sp.getHinhAnhSanPhams().stream()
+        List<String> gallery = spWithGallery.getHinhAnhSanPhams().stream()
                 .sorted((a, b) -> {
                     if (a.getLaAnhChinh() && !b.getLaAnhChinh()) return -1;
                     if (!a.getLaAnhChinh() && b.getLaAnhChinh()) return 1;
@@ -103,7 +162,7 @@ public class HomeServiceimpl implements HomeService {
                 .map(HinhAnhSanPham::getDuongDanAnh)
                 .collect(Collectors.toList());
 
-        Map<String, String> hinhAnhTheoMau = sp.getHinhAnhMauSacs().stream()
+        Map<String, String> hinhAnhTheoMau = spWithMauSac.getHinhAnhMauSacs().stream()
                 .collect(Collectors.toMap(
                         HinhAnhMauSac::getMauSac,
                         HinhAnhMauSac::getDuongDanAnh,
@@ -123,6 +182,18 @@ public class HomeServiceimpl implements HomeService {
                         .build())
                 .collect(Collectors.toList());
 
+        // Resolve danhMuc fields inside transaction (avoid lazy proxy outside session)
+        Integer danhMucId = null, danhMucChaId = null;
+        String danhMucTen = null, danhMucChaTen = null;
+        if (sp.getDanhMuc() != null) {
+            danhMucId = sp.getDanhMuc().getId();
+            danhMucTen = sp.getDanhMuc().getTen();
+            if (sp.getDanhMuc().getDanhMucCha() != null) {
+                danhMucChaId = sp.getDanhMuc().getDanhMucCha().getId();
+                danhMucChaTen = sp.getDanhMuc().getDanhMucCha().getTen();
+            }
+        }
+
         return ProductDetailVM.builder()
                 .id(sp.getId())
                 .maSanPham(sp.getMaSanPham())
@@ -131,7 +202,10 @@ public class HomeServiceimpl implements HomeService {
                 .moTa(sp.getMoTa())
                 .chatLieu(sp.getChatLieu())
                 .gioiTinh(sp.getGioiTinh())
-                .danhMuc(sp.getDanhMuc())
+                .danhMucId(danhMucId)
+                .danhMucTen(danhMucTen)
+                .danhMucChaId(danhMucChaId)
+                .danhMucChaTen(danhMucChaTen)
                 .hinhAnhGallery(gallery)
                 .hinhAnhTheoMau(hinhAnhTheoMau)
                 .bienThes(bienThes)

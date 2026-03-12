@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,37 +8,92 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/admin/categories.css}">
 </head>
+
 <body>
 
-<div th:replace="~{admin/fragments/sidebar :: sidebar('categories')}"></div>
-<div class="main-content">
-    <header class="top-header">
-        <h4 class="fw-800 mb-0 text-uppercase letter-spacing-1">Quản lý danh mục</h4>
-        <div class="d-flex align-items-center gap-3">
-            <a th:href="@{/admin/categories/add}" class="btn btn-dark rounded-0 fw-700 text-uppercase small letter-spacing-1 px-4 py-2">
-                <i class="fas fa-plus me-2"></i> Thêm danh mục
-            </a>
-            <div class="rounded-circle bg-soft-primary d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
-                <i class="fas fa-user-shield"></i>
+    <div th:replace="~{admin/fragments/sidebar :: sidebar('categories')}"></div>
+    <div class="main-content">
+        <header class="top-header">
+            <h4 class="fw-800 mb-0 text-uppercase letter-spacing-1">Quản Lý Danh Mục</h4>
+            <div class="d-flex align-items-center gap-3">
+                <a th:href="@{/admin/categories/add}"
+                    class="btn btn-dark rounded-0 fw-700 text-uppercase small letter-spacing-1 px-4 py-2">
+                    <i class="fas fa-plus me-2"></i> Thêm Danh Mục
+                </a>
+            </div>
+        </header>
+
+        <div th:if="${successMessage}" class="alert alert-success border-0 rounded-0 small mb-4"
+            th:text="${successMessage}"></div>
+
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-label">Tổng danh mục</div>
+                    <div class="stat-value" th:text="${totalAll}">0</div>
+                    <div class="stat-desc">Tất cả cấp</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-label">Danh mục cấp 1</div>
+                    <div class="stat-value" th:text="${parentCount}">0</div>
+                    <div class="stat-desc">Nhóm chính</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-label">Danh mục cấp 2</div>
+                    <div class="stat-value" th:text="${childCount}">0</div>
+                    <div class="stat-desc">Phân loại con</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-label">Đang hoạt động</div>
+                    <div class="stat-value text-success" th:text="${activeCount}">0</div>
+                    <div class="stat-desc">Active</div>
+                </div>
             </div>
         </div>
-    </header>
 
-    <div th:if="${successMessage}" class="alert alert-success border-0 rounded-0 small mb-4" th:text="${successMessage}"></div>
+        <!-- Search & Page Size -->
+        <div class="card mb-0">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3">
+                <form class="d-flex align-items-center gap-2 mb-0" th:action="@{/admin/categories}" method="get">
+                    <div class="input-group" style="width: 280px;">
+                        <span class="input-group-text bg-white border-end-0"><i
+                                class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="keyword" class="form-control border-start-0 ps-0"
+                            placeholder="Tìm kiếm danh mục..." th:value="${keyword}">
+                    </div>
+                    <input type="hidden" name="size" th:value="${pageSize}">
+                </form>
+                <div class="d-flex align-items-center gap-2 small text-muted">
+                    <span>Hiển thị</span>
+                    <select id="pageSizeSelect" class="form-select form-select-sm" style="width: 65px;">
+                        <option value="2" th:selected="${pageSize == 2}">2</option>
+                        <option value="3" th:selected="${pageSize == 3}">3</option>
+                        <option value="5" th:selected="${pageSize == 5}">5</option>
+                       
+                    </select>
+                    <span>/ trang</span>
+                </div>
+            </div>
 
-    <div class="card">
-        <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th class="ps-4" style="width: 80px;">ID</th>
+                            <th class="ps-4" style="width: 70px;">ID</th>
                             <th>Mã</th>
                             <th>Tên danh mục</th>
                             <th>Trạng thái</th>
@@ -48,50 +104,63 @@
                     <tbody>
                         <th:block th:each="parent : ${categories}">
                             <!-- Parent Category -->
-                            <tr class="table-group-divider">
-                                <td class="ps-4 fw-700 text-dark" th:text="${parent.id}">1</td>
-                                <td><code class="fw-700" th:text="${parent.ma}">DM001</code></td>
+                            <tr class="parent-row">
+                                <td class="ps-4 fw-700" th:text="${parent.id}">1</td>
+                                <td><code class="code-parent" th:text="${parent.ma}">DM001</code></td>
                                 <td>
-                                    <div class="fw-800 text-uppercase text-dark" th:text="${parent.ten}">Danh mục cha</div>
-                                    <small class="text-muted small text-uppercase" style="font-size: 9px; letter-spacing: 1px;">Danh mục cấp 1</small>
+                                    <div class="fw-800 text-uppercase" th:text="${parent.ten}">Danh mục cha</div>
+                                    <small class="text-muted text-uppercase"
+                                        style="font-size: 10px; letter-spacing: 1px;">Danh mục cấp 1</small>
                                 </td>
                                 <td>
-                                    <span class="badge rounded-pill px-3 py-2" 
-                                          th:classappend="${parent.trangThai == 'ACTIVE' ? 'badge-active' : 'badge-inactive'}"
-                                          th:text="${parent.trangThai}">ACTIVE</span>
+                                    <span class="status-dot"
+                                        th:classappend="${parent.trangThai == 'ACTIVE' ? 'dot-active' : 'dot-inactive'}">
+                                        <i class="fas fa-circle"></i>
+                                        <span
+                                            th:text="${parent.trangThai == 'ACTIVE' ? 'Active' : 'Inactive'}">Active</span>
+                                    </span>
                                 </td>
-                                <td class="small text-muted" th:text="${#temporals.format(parent.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
+                                <td class="small text-muted"
+                                    th:text="${#temporals.format(parent.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
                                 <td class="text-end pe-4">
                                     <div class="d-flex justify-content-end gap-2">
-                                        <a th:href="@{/admin/categories/edit/{id}(id=${parent.id})}" class="btn-action" title="Chỉnh sửa">
+                                        <a th:href="@{/admin/categories/edit/{id}(id=${parent.id})}" class="btn-action"
+                                            title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button class="btn-action btn-delete" title="Xóa" th:onclick="'deleteCategory(' + ${parent.id} + ')'">
+                                        <button class="btn-action btn-delete" title="Xóa" th:data-id="${parent.id}"
+                                            onclick="deleteCategory(this.dataset.id)">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                             <!-- Child Categories -->
-                            <tr th:each="child : ${parent.danhMucCon}" class="category-child">
-                                <td class="ps-5 text-muted small" th:text="${child.id}">2</td>
-                                <td class="ps-3"><code class="text-muted" th:text="${child.ma}">DM002</code></td>
-                                <td class="ps-3">
+                            <tr th:each="child : ${parent.danhMucCon}" class="child-row">
+                                <td class="ps-4 text-muted small" th:text="${child.id}">2</td>
+                                <td><code class="code-child" th:text="${child.ma}">DM002</code></td>
+                                <td>
                                     <i class="fas fa-level-up-alt fa-rotate-90 me-2 text-muted opacity-50"></i>
-                                    <span class="fw-600 text-dark" th:text="${child.ten}">Danh mục con</span>
+                                    <span class="fw-600" th:text="${child.ten}">Danh mục con</span>
                                 </td>
                                 <td>
-                                    <span class="badge rounded-pill px-3 py-2" 
-                                          th:classappend="${child.trangThai == 'ACTIVE' ? 'badge-active' : 'badge-inactive'}"
-                                          th:text="${child.trangThai}">ACTIVE</span>
+                                    <span class="status-dot"
+                                        th:classappend="${child.trangThai == 'ACTIVE' ? 'dot-active' : 'dot-inactive'}">
+                                        <i class="fas fa-circle"></i>
+                                        <span
+                                            th:text="${child.trangThai == 'ACTIVE' ? 'Active' : 'Inactive'}">Active</span>
+                                    </span>
                                 </td>
-                                <td class="small text-muted" th:text="${#temporals.format(child.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
+                                <td class="small text-muted"
+                                    th:text="${#temporals.format(child.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
                                 <td class="text-end pe-4">
                                     <div class="d-flex justify-content-end gap-2">
-                                        <a th:href="@{/admin/categories/edit/{id}(id=${child.id})}" class="btn-action" title="Chỉnh sửa">
+                                        <a th:href="@{/admin/categories/edit/{id}(id=${child.id})}" class="btn-action"
+                                            title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button class="btn-action btn-delete" title="Xóa" th:onclick="'deleteCategory(' + ${child.id} + ')'">
+                                        <button class="btn-action btn-delete" title="Xóa" th:data-id="${child.id}"
+                                            onclick="deleteCategory(this.dataset.id)">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </div>
@@ -107,35 +176,78 @@
                     </tbody>
                 </table>
             </div>
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 border-top">
-                <div class="small text-muted">
-                    Trang <span th:text="${currentPage}">1</span> / <span th:text="${totalPages}">1</span>
+
+            <!-- Pagination Footer -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top">
+                <div class="small text-muted"
+                    th:with="start=${(currentPage - 1) * pageSize + 1}, end=${currentPage * pageSize > totalElements ? totalElements : currentPage * pageSize}">
+                    Hiển thị <span class="fw-600 text-primary" th:text="${start}">1</span>–<span
+                        class="fw-600 text-primary" th:text="${end}">2</span>
+                    trong tổng <span class="fw-600" th:text="${totalElements}">0</span> kết quả
                 </div>
+
                 <nav th:if="${totalPages > 1}" aria-label="Category pagination">
-                    <ul class="pagination mb-0">
+                    <ul class="pagination pagination-sm mb-0">
+                        <!-- Prev -->
                         <li class="page-item" th:classappend="${currentPage == 1} ? ' disabled'">
-                            <a class="page-link" th:href="@{/admin/categories(page=${currentPage - 1}, size=${pageSize})}">
-                                Trước
+                            <a class="page-link"
+                                th:href="@{/admin/categories(page=${currentPage - 1}, size=${pageSize}, keyword=${keyword})}">
+                                &larr;
                             </a>
                         </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
-                            th:classappend="${i == currentPage} ? ' active'">
-                            <a class="page-link" th:href="@{/admin/categories(page=${i}, size=${pageSize})}" th:text="${i}">1</a>
+                        <!-- Page 1 always -->
+                        <li class="page-item" th:classappend="${currentPage == 1} ? ' active'">
+                            <a class="page-link"
+                                th:href="@{/admin/categories(page=1, size=${pageSize}, keyword=${keyword})}">1</a>
                         </li>
+                        <!-- ... before -->
+                        <li class="page-item disabled" th:if="${currentPage > 3}"><span class="page-link">...</span>
+                        </li>
+                        <!-- Middle pages -->
+                        <th:block th:if="${totalPages > 2}"
+                            th:with="s=${currentPage - 1 > 2 ? currentPage - 1 : 2}, e=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}">
+                            <th:block th:if="${s <= e}">
+                                <li class="page-item" th:each="i : ${#numbers.sequence(s, e)}"
+                                    th:classappend="${i == currentPage} ? ' active'">
+                                    <a class="page-link"
+                                        th:href="@{/admin/categories(page=${i}, size=${pageSize}, keyword=${keyword})}"
+                                        th:text="${i}">2</a>
+                                </li>
+                            </th:block>
+                        </th:block>
+                        <!-- ... after -->
+                        <li class="page-item disabled" th:if="${currentPage < totalPages - 2}"><span
+                                class="page-link">...</span></li>
+                        <!-- Last page -->
+                        <li class="page-item" th:if="${totalPages > 1}"
+                            th:classappend="${currentPage == totalPages} ? ' active'">
+                            <a class="page-link"
+                                th:href="@{/admin/categories(page=${totalPages}, size=${pageSize}, keyword=${keyword})}"
+                                th:text="${totalPages}">8</a>
+                        </li>
+                        <!-- Next -->
                         <li class="page-item" th:classappend="${currentPage == totalPages} ? ' disabled'">
-                            <a class="page-link" th:href="@{/admin/categories(page=${currentPage + 1}, size=${pageSize})}">
-                                Sau
+                            <a class="page-link"
+                                th:href="@{/admin/categories(page=${currentPage + 1}, size=${pageSize}, keyword=${keyword})}">
+                                &rarr;
                             </a>
                         </li>
                     </ul>
                 </nav>
+
+                <div class="d-flex align-items-center gap-2 small text-muted" th:if="${totalPages > 1}">
+                    <span>Đến trang</span>
+                    <input id="goToPageInput" type="number" class="form-control form-control-sm text-center"
+                        style="width: 50px;" min="1" th:max="${totalPages}">
+                    <span>/ <span th:text="${totalPages}">1</span></span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script th:src="@{/js/admin/categories.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:src="@{/js/admin/categories.js}"></script>
 </body>
+
 </html>

@@ -79,8 +79,7 @@ function updateStatistics() {
     .then(res => res.json())
     .then(data => {
         document.getElementById('doanhThuThucTe').innerText = new Intl.NumberFormat('vi-VN').format(data.doanhThuThucTe) + '₫';
-        document.getElementById('doanhThuTamTinh').innerText = new Intl.NumberFormat('vi-VN').format(data.doanhThuTamTinh) + '₫';
-        document.getElementById('doanhThuThatThoat').innerText = new Intl.NumberFormat('vi-VN').format(data.doanhThuThatThoat) + '₫';
+        
         document.getElementById('soDonTrongKy').innerText = data.soDon;
     });
 

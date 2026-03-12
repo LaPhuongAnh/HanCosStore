@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+// Service giỏ hàng: tạo/lấy giỏ theo session hoặc tài khoản, cập nhật item và tính tiền.
 public class CartService {
 
     private final GioHangRepository gioHangRepository;
@@ -26,6 +27,7 @@ public class CartService {
     private final BienTheSanPhamRepository bienTheSanPhamRepository;
     private final TaiKhoanRepository taiKhoanRepository;
 
+    // Lấy giỏ hàng hiện tại theo user đăng nhập, nếu là khách thì theo sessionId; chưa có thì tạo mới
     public GioHang getOrCreateCart(HttpSession session) {
         TaiKhoanDTO loginUser = (TaiKhoanDTO) session.getAttribute("LOGIN_USER");
         if (loginUser != null) {
@@ -52,6 +54,7 @@ public class CartService {
                 });
     }
 
+    // Thêm sản phẩm vào giỏ, kiểm tra tồn kho và cộng dồn số lượng nếu biến thể đã tồn tại trong giỏ
     @Transactional
     public void addToCart(Integer bienTheId, Integer soLuong, HttpSession session) {
         log.info("Thêm sản phẩm vào giỏ hàng - SessionID: {}", session.getId());
@@ -82,6 +85,7 @@ public class CartService {
         }
     }
 
+    // Cập nhật số lượng 1 dòng sản phẩm trong giỏ; nếu số lượng <= 0 thì xóa dòng đó
     @Transactional
     public void updateQuantity(Integer itemId, Integer soLuong) {
         ChiTietGioHang item = chiTietGioHangRepository.findById(itemId)
@@ -100,11 +104,13 @@ public class CartService {
         chiTietGioHangRepository.save(item);
     }
 
+    // Xóa một dòng sản phẩm khỏi giỏ theo id chi tiết giỏ hàng
     @Transactional
     public void removeItem(Integer itemId) {
         chiTietGioHangRepository.deleteById(itemId);
     }
 
+    // Chuyển dữ liệu entity giỏ hàng sang DTO để render giao diện và tính tiền
     @Transactional(readOnly = true)
     public List<CartItemDTO> getCartItems(HttpSession session) {
         GioHang gioHang = getOrCreateCart(session);
@@ -136,12 +142,26 @@ public class CartService {
                 .collect(Collectors.toList());
     }
 
+    // Tính tổng tiền tạm tính của toàn bộ sản phẩm trong giỏ
     public BigDecimal getTotalAmount(List<CartItemDTO> items) {
         return items.stream()
                 .map(CartItemDTO::getThanhTien)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    // Quy tắc phí vận chuyển theo tổng tiền hàng (chưa trừ voucher)
+    // > 500.000đ: miễn phí, từ 200.000đ - 500.000đ: 20.000đ, còn lại: 30.000đ
+    public static BigDecimal calculateShippingFee(BigDecimal subtotal) {
+        if (subtotal.compareTo(new BigDecimal("500000")) > 0) {
+            return BigDecimal.ZERO;
+        } else if (subtotal.compareTo(new BigDecimal("200000")) >= 0) {
+            return new BigDecimal("20000");
+        } else {
+            return new BigDecimal("30000");
+        }
+    }
+
+    // Tổng số lượng sản phẩm (theo từng đơn vị) đang có trong giỏ
     public int getItemCount(HttpSession session) {
         GioHang gioHang = getOrCreateCart(session);
         return gioHang.getChiTiets().stream()

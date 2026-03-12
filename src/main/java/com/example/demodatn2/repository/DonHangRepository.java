@@ -16,27 +16,27 @@ public interface DonHangRepository extends JpaRepository<DonHang, Integer> {
     List<DonHang> findByTrangThaiOrderByNgayDatDesc(String trangThai);
         java.util.Optional<DonHang> findByMaDonHangIgnoreCase(String maDonHang);
 
-    @org.springframework.data.jpa.repository.Query("SELECT SUM(d.tongTien) FROM DonHang d WHERE d.trangThai = 'COMPLETED'")
+        @org.springframework.data.jpa.repository.Query("SELECT SUM(d.tongTien) FROM DonHang d WHERE d.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED')")
     BigDecimal sumTongDoanhThu();
 
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(d) FROM DonHang d WHERE d.trangThai = 'COMPLETED'")
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(d) FROM DonHang d WHERE d.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED')")
     Long countDonHangThanhCong();
 
-    @org.springframework.data.jpa.repository.Query("SELECT SUM(d.tongTien) FROM DonHang d WHERE d.trangThai = 'COMPLETED' AND d.ngayDat >= ?1")
+        @org.springframework.data.jpa.repository.Query("SELECT SUM(d.tongTien) FROM DonHang d WHERE d.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED') AND d.ngayDat >= ?1")
     BigDecimal sumDoanhThuTuNgay(Instant tuNgay);
 
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(d) FROM DonHang d WHERE d.trangThai = 'COMPLETED' AND d.ngayDat >= ?1")
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(d) FROM DonHang d WHERE d.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED') AND d.ngayDat >= ?1")
     Long countDonHangTuNgay(Instant tuNgay);
 
     @org.springframework.data.jpa.repository.Query("SELECT CAST(d.ngayDat AS LocalDate) as date, SUM(d.tongTien) as amount " +
-            "FROM DonHang d WHERE d.trangThai = 'COMPLETED' " +
+            "FROM DonHang d WHERE d.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED') " +
             "AND (:tuNgay IS NULL OR d.ngayDat >= :tuNgay) " +
             "AND (:denNgay IS NULL OR d.ngayDat <= :denNgay) " +
             "GROUP BY CAST(d.ngayDat AS LocalDate) " +
             "ORDER BY CAST(d.ngayDat AS LocalDate) ASC")
     List<Object[]> getDoanhThuTheoNgay(@Param("tuNgay") Instant tuNgay, @Param("denNgay") Instant denNgay);
 
-    @org.springframework.data.jpa.repository.Query("SELECT SUM(d.tongTien) FROM DonHang d WHERE d.trangThai = 'COMPLETED' " +
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(d.tongTien) FROM DonHang d WHERE d.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED') " +
             "AND (:tuNgay IS NULL OR d.ngayDat >= :tuNgay) " +
             "AND (:denNgay IS NULL OR d.ngayDat <= :denNgay)")
     BigDecimal sumDoanhThuTrongKhoang(@Param("tuNgay") Instant tuNgay, @Param("denNgay") Instant denNgay);
@@ -48,12 +48,12 @@ public interface DonHangRepository extends JpaRepository<DonHang, Integer> {
                                              @Param("tuNgay") Instant tuNgay,
                                              @Param("denNgay") Instant denNgay);
 
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(d) FROM DonHang d WHERE d.trangThai = 'COMPLETED' " +
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(d) FROM DonHang d WHERE d.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED') " +
             "AND (:tuNgay IS NULL OR d.ngayDat >= :tuNgay) " +
             "AND (:denNgay IS NULL OR d.ngayDat <= :denNgay)")
     Long countDonHangTrongKhoang(@Param("tuNgay") Instant tuNgay, @Param("denNgay") Instant denNgay);
 
-    @org.springframework.data.jpa.repository.Query("SELECT d FROM DonHang d WHERE d.trangThai = 'COMPLETED' " +
+    @org.springframework.data.jpa.repository.Query("SELECT d FROM DonHang d WHERE d.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED') " +
             "AND (:tuNgay IS NULL OR d.ngayDat >= :tuNgay) " +
             "AND (:denNgay IS NULL OR d.ngayDat <= :denNgay) " +
             "ORDER BY d.ngayDat DESC")

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+// Client gọi Gemini API để sinh câu trả lời chatbot theo prompt hệ thống và người dùng.
 public class GeminiClient {
 
     @Value("${gemini.api.key}")

@@ -1,5 +1,6 @@
 package com.example.demodatn2.controller;
 
+import com.example.demodatn2.dto.SanPhamRequestDTO;
 import com.example.demodatn2.dto.SanPhamResponseDTO;
 import com.example.demodatn2.dto.TaiKhoanDTO;
 import com.example.demodatn2.service.DanhMucService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -59,6 +61,7 @@ public class SanPhamController {
         model.addAttribute("currentPage", safePage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("pageSize", safeSize);
+        model.addAttribute("totalElements", productPage.getTotalElements());
         return "admin/products"; 
     }
 
@@ -79,6 +82,21 @@ public class SanPhamController {
         model.addAttribute("product", sanPhamService.getSanPhamById(id));
         model.addAttribute("parentDanhMuc", danhMucService.getParents());
         return "editsanpham";
+    }
+
+    @PostMapping("/admin/san-pham/edit/{id}")
+    public String updateProductFromForm(@PathVariable Integer id,
+                                        @ModelAttribute SanPhamRequestDTO requestDTO,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            requestDTO.setId(id);
+            sanPhamService.updateSanPham(requestDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật sản phẩm thành công.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/admin/san-pham/edit/" + id;
+        }
+        return "redirect:/san-pham";
     }
 
     @PostMapping("/admin/san-pham/{id}/them-so-luong")

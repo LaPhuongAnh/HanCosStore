@@ -12,84 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/hancos-home.css}">
-    <style>
-        .profile-container {
-            max-width: 800px;
-            margin: 60px auto;
-            padding: 50px;
-            background: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            border: 1px solid #eee;
-        }
-        .profile-header {
-            border-bottom: 1px solid #eee;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            text-align: center;
-        }
-        .profile-header h2 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #1a1a1a;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 0;
-        }
-        .info-group {
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #f8f9fa;
-            padding-bottom: 15px;
-        }
-        .info-label {
-            width: 200px;
-            font-weight: 700;
-            color: #888;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .info-value {
-            flex: 1;
-            color: #1a1a1a;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        .btn-action {
-            padding: 12px 30px;
-            text-transform: uppercase;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0;
-        }
-        .btn-edit {
-            background: #1a1a1a;
-            color: white;
-            border: none;
-        }
-        .btn-edit:hover {
-            background: #8b4d4d;
-            color: white;
-            transform: translateY(-2px);
-        }
-        .btn-home {
-            background: white;
-            color: #1a1a1a;
-            border: 1px solid #ddd;
-        }
-        .btn-home:hover {
-            background: #f8f9fa;
-            border-color: #1a1a1a;
-            transform: translateY(-2px);
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/profile.css}">
 </head>
 <body>
 
@@ -203,6 +126,20 @@
         <div class="info-group">
             <div class="info-label">Số điện thoại</div>
             <div class="info-value" th:text="${user.soDienThoai ?: 'Chưa cập nhật'}">0123456789</div>
+        </div>
+
+        <div class="info-group" style="flex-direction: column; align-items: flex-start;">
+            <div class="info-label" style="margin-bottom: 10px;">Địa chỉ giao hàng</div>
+            <div th:if="${#lists.isEmpty(addresses)}" class="info-value text-muted">Chưa có địa chỉ nào</div>
+            <div th:each="addr : ${addresses}" class="w-100 mb-2 p-3" style="background:#f8f9fa; border:1px solid #eee; border-radius:6px; font-size:14px;">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <strong th:text="${addr.hoTenNhan}">Tên</strong>
+                    <span class="text-muted">|</span>
+                    <span th:text="${addr.soDienThoaiNhan}">SĐT</span>
+                    <span th:if="${addr.laMacDinh}" class="badge bg-dark" style="font-size:10px;">Mặc định</span>
+                </div>
+                <div class="text-muted" style="font-size:13px;" th:text="${addr.diaChiChiTiet + ', ' + addr.phuongXa + ', ' + addr.quanHuyen + ', ' + addr.tinhThanh}">-</div>
+            </div>
         </div>
 
         <div class="info-group">

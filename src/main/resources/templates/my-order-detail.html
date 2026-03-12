@@ -7,194 +7,177 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/hancos-home.css}">
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .navbar { background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1rem 0; }
-        .navbar-brand { font-weight: 700; font-size: 1.5rem; color: #1a1a1a !important; }
-        .nav-link { color: #1a1a1a; font-weight: 500; }
-        .order-detail-container { padding: 4rem 0; min-height: 70vh; }
-        .page-title { font-weight: 700; margin-bottom: 2rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 1rem; }
-        .card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 2rem; }
-        .card-header { background: #fafafa; border-bottom: 1px solid #eee; font-weight: 700; padding: 1rem 1.5rem; }
-        .card-body { padding: 1.5rem; }
-        .info-label { color: #888; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.3rem; }
-        .info-value { font-weight: 600; color: #1a1a1a; margin-bottom: 1.2rem; }
-        .status-badge { padding: 0.5rem 1rem; border-radius: 4px; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; }
-        .status-pending { background: #fff8e1; color: #ffc107; }
-        .status-confirmed { background: #e0f7fa; color: #0dcaf0; }
-        .status-shipping { background: #e3f2fd; color: #0d6efd; }
-        .status-delivered { background: #e8f5e9; color: #198754; }
-        .status-cancelled { background: #ffebee; color: #dc3545; }
-        .product-item { display: flex; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f5f5f5; }
-        .product-item:last-child { border-bottom: none; }
-        .product-info { flex-grow: 1; }
-        .product-name { font-weight: 600; color: #1a1a1a; margin-bottom: 0.2rem; }
-        .product-meta { font-size: 0.85rem; color: #888; }
-        .product-price-qty { text-align: right; }
-        .price { font-weight: 600; color: #1a1a1a; }
-        .qty { font-size: 0.85rem; color: #888; }
-        .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.8rem; }
-        .summary-label { color: #888; }
-        .summary-value { font-weight: 600; color: #1a1a1a; }
-        .summary-total { border-top: 2px solid #f0f0f0; padding-top: 1rem; margin-top: 1rem; font-size: 1.2rem; }
-        .summary-total .summary-value { color: #a52a2a; font-weight: 700; }
-        footer { background: #1a1a1a; color: #fff; padding: 2rem 0; margin-top: 4rem; }
-        .footer-bottom { text-align: center; padding-top: 1rem; border-top: 1px solid #333; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/my-order-detail.css}">
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg">
-    <div class="container">
-        <a class="navbar-brand" th:href="@{/}">Hancos</a>
+<nav class="minimal-nav navbar navbar-expand-lg">
+    <div class="container-xl">
+        <a class="brand-mark" th:href="@{/}">HANCOS</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div id="nav" class="collapse navbar-collapse">
-            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Danh mục</a>
-                    <ul class="dropdown-menu">
-                        <li class="dropdown-submenu" th:each="parent : ${categories}" th:if="${parent.danhMucCha == null}">
-                            <a class="dropdown-item d-flex justify-content-between align-items-center" th:href="@{/(danhMucId=${parent.id})}">
-                                <span th:text="${parent.ten}">Danh mục cha</span>
-                                <i class="fa-solid fa-chevron-right small" th:if="${parent.danhMucCon != null and not #lists.isEmpty(parent.danhMucCon)}"></i>
-                            </a>
-                            <ul class="dropdown-menu" th:if="${parent.danhMucCon != null and not #lists.isEmpty(parent.danhMucCon)}">
-                                <li th:each="child : ${parent.danhMucCon}">
-                                    <a class="dropdown-item" th:href="@{/(danhMucId=${child.id})}" th:text="${child.ten}">Danh mục con</a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown" th:if="${session.LOGIN_USER != null}">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <span th:text="${session.LOGIN_USER.hoTen}">User</span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" th:href="@{/account/profile}">Thông tin tài khoản</a></li>
-                        <li><a class="dropdown-item active" th:href="@{/order/my-orders}">Đơn hàng của tôi</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" th:href="@{/logout}">Đăng xuất</a></li>
-                    </ul>
-                </li>
-            </ul>
+            <div class="nav-center mx-auto">
+                <a th:href="@{/}">Trang chủ</a>
+                <th:block th:each="parent, st : ${categories}">
+                    <a th:if="${parent.danhMucCha == null and st.index < 4}"
+                       th:href="@{/(danhMucId=${parent.id})}" th:text="${parent.ten}">Danh mục</a>
+                </th:block>
+            </div>
+            <div class="nav-icons ms-lg-auto d-flex align-items-center">
+                <a th:href="@{/cart}" title="Giỏ hàng"><i class="fa-solid fa-bag-shopping"></i></a>
+                <a th:if="${session.LOGIN_USER != null}" th:href="@{/account/profile}" title="Tài khoản"><i class="fa-regular fa-user"></i></a>
+            </div>
         </div>
     </div>
 </nav>
 
-<div class="container order-detail-container">
-    <div class="mb-4">
-        <a th:href="@{/order/my-orders}" class="text-decoration-none text-muted">
-            <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách đơn hàng
+<main class="detail-wrap">
+    <div>
+        <a th:href="@{/order/my-orders}" class="back-link">
+            <i class="fas fa-angle-left me-1"></i> Quay lại danh sách đơn hàng
         </a>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="page-title mb-0" style="border-bottom: none;" data-order-id="" th:attr="data-order-id=${order.id}">
+        <div class="head-row"
+            th:attr="data-order-id=${order.id},data-current-address=${order.diaChiNhan}">
+        <h2 class="page-title">
             CHI TIẾT ĐƠN HÀNG <span th:text="'#' + ${order.maDonHang}"></span>
         </h2>
-        <div class="d-flex gap-2 align-items-center">
-            <button th:if="${order.trangThai == 'PENDING' or order.trangThai == 'CONFIRMED'}"
-                    class="btn btn-outline-dark px-4 fw-bold"
+        <div class="action-bar">
+            <button th:if="${order.trangThai == 'CHO_XAC_NHAN' or order.trangThai == 'DA_XAC_NHAN' or order.trangThai == 'PENDING' or order.trangThai == 'CONFIRMED'}"
+                    class="btn-flat"
                     onclick="showEditAddressModal()">
                 <i class="fas fa-edit me-2"></i>Thay đổi địa chỉ
             </button>
-            <button th:if="${order.trangThai == 'PENDING' or order.trangThai == 'CONFIRMED'}"
-                    class="btn btn-outline-danger px-4 fw-bold"
-                    th:onclick="'cancelOrder(' + ${order.id} + ')'">
+            <button th:if="${order.trangThai == 'CHO_XAC_NHAN' or order.trangThai == 'DA_XAC_NHAN' or order.trangThai == 'PENDING' or order.trangThai == 'CONFIRMED'}"
+                    class="btn-flat btn-flat-danger"
+                    onclick="cancelOrder()">
                 Hủy đơn hàng
             </button>
-            <span class="status-badge"
-                  th:classappend="${order.trangThai == 'PENDING' ? 'status-pending' :
-                                   (order.trangThai == 'CONFIRMED' ? 'status-confirmed' :
-                                   (order.trangThai == 'SHIPPING' ? 'status-shipping' :
-                                   (order.trangThai == 'DELIVERED' ? 'status-delivered' : 'status-cancelled')))}"
-                  th:text="${order.trangThai == 'PENDING' ? 'Chờ xác nhận' :
-                           (order.trangThai == 'CONFIRMED' ? 'Đã xác nhận' :
-                           (order.trangThai == 'SHIPPING' ? 'Đang giao hàng' :
-                           (order.trangThai == 'DELIVERED' ? 'Đã giao hàng' : 'Đã hủy')))}">
+            <button th:if="${canRequestReturn}"
+                    class="btn-flat btn-flat-warning btn-return-detail"
+                    onclick="requestReturn()">
+                <i class="fas fa-undo me-1"></i>Yêu cầu trả hàng
+            </button>
+            <span class="status-chip"
+                  th:classappend="${order.trangThai == 'CHO_XAC_NHAN' or order.trangThai == 'PENDING' ? 'status-pending' :
+                                   (order.trangThai == 'DA_XAC_NHAN' or order.trangThai == 'CONFIRMED' ? 'status-confirmed' :
+                                   (order.trangThai == 'DANG_GIAO' or order.trangThai == 'SHIPPING' ? 'status-shipping' :
+                                   (order.trangThai == 'HOAN_THANH' or order.trangThai == 'DELIVERED' or order.trangThai == 'COMPLETED' ? 'status-delivered' :
+                                   (order.trangThai == 'TRA_HANG' or order.trangThai == 'RETURN_REQUESTED' or order.trangThai == 'RETURNED' ? 'status-return' : 'status-cancelled'))))}"
+                  th:text="${order.trangThai == 'CHO_XAC_NHAN' or order.trangThai == 'PENDING' ? 'Chờ xác nhận' :
+                           (order.trangThai == 'DA_XAC_NHAN' or order.trangThai == 'CONFIRMED' ? 'Đã xác nhận' :
+                           (order.trangThai == 'DANG_GIAO' or order.trangThai == 'SHIPPING' ? 'Đang giao hàng' :
+                           (order.trangThai == 'HOAN_THANH' or order.trangThai == 'DELIVERED' or order.trangThai == 'COMPLETED' ? 'Hoàn thành' :
+                           (order.trangThai == 'TRA_HANG' or order.trangThai == 'RETURN_REQUESTED' or order.trangThai == 'RETURNED' ? 'Yêu cầu trả hàng' : 'Đã hủy'))))}">
             </span>
         </div>
     </div>
 
-    <div class="alert alert-danger border-0 rounded-0" th:if="${order.trangThai == 'CANCELLED'}">
+    <div class="flat-alert alert" th:if="${order.trangThai == 'DA_HUY' or order.trangThai == 'CANCELLED'}">
         <i class="fas fa-exclamation-circle me-2"></i>
         <strong>Đơn hàng đã bị hủy.</strong>
         <span th:if="${order.lyDoHuy != null}" th:text="'Lý do: ' + ${order.lyDoHuy}"></span>
     </div>
 
+    <div class="flat-alert alert alert-success" th:if="${actionSuccess != null}" th:text="${actionSuccess}"></div>
+    <div class="flat-alert alert alert-danger" th:if="${actionError != null}" th:text="${actionError}"></div>
+
+    <div th:if="${returnRequest != null}" class="flat-alert alert"
+         th:classappend="${returnRequest.trangThai == 'PENDING' ? 'alert-warning' : (returnRequest.trangThai == 'APPROVED' ? 'alert-success' : 'alert-danger')}">
+        <i class="fas fa-undo me-2"></i>
+        <strong>Yêu cầu trả hàng:</strong>
+        <span th:text="${returnRequest.lyDo}"></span>
+        <span class="badge ms-2"
+              th:classappend="${returnRequest.trangThai == 'PENDING' ? 'bg-warning text-dark' : (returnRequest.trangThai == 'APPROVED' ? 'bg-success' : 'bg-danger')}"
+              th:text="${returnRequest.trangThai == 'PENDING' ? 'Đang chờ duyệt' : (returnRequest.trangThai == 'APPROVED' ? 'Đã duyệt' : 'Đã từ chối')}"></span>
+    </div>
+
     <div class="row">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">Sản phẩm</div>
-                <div class="card-body">
+            <div class="section-box">
+                <div class="section-head">
+                    <span>Sản phẩm</span>
+                    <span th:text="${#lists.size(items)} + ' sản phẩm'">0 sản phẩm</span>
+                </div>
+                <div class="section-body">
                     <div th:each="item : ${items}" class="product-item">
-                        <div class="product-info">
-                            <div class="product-name" th:text="${item.tenSanPham}">Tên sản phẩm</div>
-
-                            <div class="product-meta" th:text="${item.mauSac} + ' / ' + ${item.kichCo}">Màu / Size</div>
+                        <div class="product-thumb">
+                            <img th:src="${itemImages[item.id]}" alt="Ảnh sản phẩm">
                         </div>
-                        <div class="product-price-qty">
-                            <div class="price" th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</div>
-                            <div class="qty" th:text="'Số lượng: ' + ${item.soLuong}">x1</div>
+                        <div>
+                            <p class="product-name" th:text="${item.tenSanPham}">Tên sản phẩm</p>
+                            <div class="product-meta" th:text="${item.mauSac} + ' - Size ' + ${item.kichCo}">Màu/Size</div>
+                            <div class="qty" th:text="'x ' + ${item.soLuong}">x1</div>
+                        </div>
+                        <div class="product-price">
+                            <div class="unit-price" th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT')} + '₫ / cái'">0₫ / cái</div>
+                            <div class="line-total" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">Thông tin nhận hàng</div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="info-label">Người nhận</div>
-                            <div class="info-value" th:text="${order.hoTenNhan}">Nguyễn Văn A</div>
+            <div class="section-box">
+                <div class="section-head">
+                    <span>Thông tin nhận hàng</span>
+                </div>
+                <div class="section-body">
+                    <div class="info-grid">
+                        <div class="info-col">
+                            <div class="label-mini">Người nhận</div>
+                            <div class="value-main" th:text="${order.hoTenNhan}">Nguyễn Văn A</div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="info-label">Số điện thoại</div>
-                            <div class="info-value" th:text="${order.soDienThoaiNhan}">0123456789</div>
+                        <div class="info-col">
+                            <div class="label-mini">Số điện thoại</div>
+                            <div class="value-main" th:text="${order.soDienThoaiNhan}">0123456789</div>
                         </div>
                     </div>
-                    <div class="info-label">Địa chỉ</div>
-                    <div class="info-value" th:text="${order.diaChiNhan}">Địa chỉ nhận hàng</div>
-                    <div class="info-label">Ghi chú</div>
-                    <div class="info-value" th:text="${order.ghiChu ?: 'Không có ghi chú'}">Ghi chú</div>
+                    <div class="label-mini">Địa chỉ</div>
+                    <div class="value-main" th:text="${order.diaChiNhan}">Địa chỉ nhận hàng</div>
+                    <div class="label-mini mt-3">Ghi chú</div>
+                    <div class="value-main" th:text="${order.ghiChu ?: 'Không có ghi chú'}">Ghi chú</div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">Tổng kết đơn hàng</div>
-                <div class="card-body">
+            <div class="section-box">
+                <div class="section-head">
+                    <span>Tổng kết đơn hàng</span>
+                </div>
+                <div class="section-body">
                     <div class="summary-row">
                         <span class="summary-label">Tạm tính</span>
-                        <span class="summary-value" th:text="${#numbers.formatDecimal(order.tamTinh, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+                        <strong th:text="${#numbers.formatDecimal(order.tamTinh, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</strong>
                     </div>
-                    <div class="summary-row">
+                    <div class="summary-row discount">
                         <span class="summary-label">Giảm giá</span>
-                        <span class="summary-value" th:text="${#numbers.formatDecimal(order.giamGia, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+                        <strong th:text="'-' + ${#numbers.formatDecimal(order.giamGia, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</strong>
                     </div>
-                    <div class="summary-row">
+                    <div class="summary-row shipping" th:classappend="${order.phiVanChuyen == 0 ? 'free' : ''}">
                         <span class="summary-label">Phí vận chuyển</span>
-                        <span class="summary-value" th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+                        <strong th:if="${order.phiVanChuyen == 0}">Miễn phí</strong>
+                        <strong th:if="${order.phiVanChuyen != 0}" th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</strong>
                     </div>
-                    <div class="summary-row summary-total">
-                        <span class="summary-label">Tổng cộng</span>
-                        <span class="summary-value" th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+                    <div class="summary-total">
+                        <span>Tổng cộng</span>
+                        <span th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">Thời gian</div>
-                <div class="card-body">
-                    <div class="info-label">Ngày đặt hàng</div>
-                    <div class="info-value" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}">01/01/2026</div>
-                    <div class="info-label">Cập nhật cuối</div>
-                    <div class="info-value"
+            <div class="section-box">
+                <div class="section-head">
+                    <span>Thời gian</span>
+                </div>
+                <div class="section-body">
+                    <div class="label-mini">Ngày đặt hàng</div>
+                    <div class="value-main" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}">01/01/2026</div>
+                    <div class="label-mini mt-3">Cập nhật cuối</div>
+                    <div class="value-main"
                          th:text="${order.ngayCapNhat != null
                ? #temporals.format(order.ngayCapNhat, 'dd/MM/yyyy HH:mm')
                : #temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}">
@@ -203,7 +186,15 @@
             </div>
         </div>
     </div>
-</div>
+</main>
+
+<form id="cancelOrderForm" method="post" th:action="@{/order/my-orders/{id}/cancel(id=${order.id})}">
+    <input type="hidden" id="cancelReason" name="reason">
+</form>
+
+<form id="returnOrderForm" method="post" th:action="@{/order/my-orders/{id}/return-request(id=${order.id})}">
+    <input type="hidden" id="returnReason" name="reason">
+</form>
 
 <!-- Modal Thay đổi địa chỉ -->
 <div class="modal fade" id="editAddressModal" tabindex="-1" aria-hidden="true">
@@ -214,15 +205,15 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <form id="editAddressForm">
+                <form id="editAddressForm" method="post" th:action="@{/order/my-orders/{id}/update-address(id=${order.id})}">
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label class="info-label">Họ và tên người nhận</label>
-                            <input type="text" id="editHoTen" class="form-control rounded-0" th:value="${order.hoTenNhan}" required>
+                            <input type="text" id="editHoTen" name="hoTen" class="form-control rounded-0" th:value="${order.hoTenNhan}" required>
                         </div>
                         <div class="col-md-12 mb-3">
                             <label class="info-label">Số điện thoại</label>
-                            <input type="text" id="editSoDienThoai" class="form-control rounded-0" th:value="${order.soDienThoaiNhan}" required>
+                            <input type="text" id="editSoDienThoai" name="soDienThoai" class="form-control rounded-0" th:value="${order.soDienThoaiNhan}" required>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="info-label">Tỉnh / Thành phố</label>
@@ -246,6 +237,7 @@
                             <label class="info-label">Địa chỉ chi tiết</label>
                             <input type="text" id="detailAddress" class="form-control rounded-0" required placeholder="Số nhà, tên đường...">
                         </div>
+                        <input type="hidden" id="fullAddress" name="diaChi">
                     </div>
                 </form>
                 <div class="alert alert-info border-0 rounded-0 small mt-2">
@@ -271,225 +263,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    function cancelOrder(orderId) {
-        Swal.fire({
-            title: 'Hủy đơn hàng',
-            text: 'Vui lòng cho biết lý do hủy đơn hàng này:',
-            input: 'text',
-            inputPlaceholder: 'Nhập lý do tại đây...',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Xác nhận hủy',
-            cancelButtonText: 'Quay lại',
-            inputValidator: (value) => {
-                if (!value) {
-                    return 'Bạn cần nhập lý do hủy!'
-                }
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const reason = result.value;
-                const formData = new FormData();
-                formData.append('reason', reason);
-
-                fetch('/order/cancel/' + orderId, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).then(res => res.text()).then(data => {
-                    if (data === 'SUCCESS') {
-                        Swal.fire('Thành công', 'Đơn hàng của bạn đã được hủy.', 'success')
-                            .then(() => location.reload());
-                    } else {
-                        Swal.fire('Lỗi', data, 'error');
-                    }
-                });
-            }
-        });
-    }
-
-    let locationData = [];
-    const editAddressModal = new bootstrap.Modal(document.getElementById('editAddressModal'));
-
-    function showEditAddressModal() {
-        if (locationData.length === 0) {
-            fetch('/data/dvhcvn.json')
-                .then(response => response.json())
-                .then(res => {
-                    locationData = res.data;
-                    initLocationDropdowns();
-                    editAddressModal.show();
-                })
-                .catch(error => console.error('Lỗi tải dữ liệu địa chính:', error));
-        } else {
-            editAddressModal.show();
-        }
-    }
-
-    function initLocationDropdowns() {
-        const provinceSelect = document.getElementById('province');
-        const districtSelect = document.getElementById('district');
-        const wardSelect = document.getElementById('ward');
-        const detailAddressInput = document.getElementById('detailAddress');
-
-        // Load provinces
-        provinceSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành</option>';
-        locationData.forEach(p => {
-            provinceSelect.add(new Option(p.name, p.level1_id));
-        });
-
-        // Parse current address from order
-        const currentAddress = /*[[${order.diaChiNhan}]]*/ "";
-
-        if (currentAddress) {
-            const parts = currentAddress.split(',').map(s => s.trim());
-
-            // Format: Số nhà..., Phường..., Quận..., Tỉnh...
-            if (parts.length >= 4) {
-                const detail = parts.slice(0, parts.length - 3).join(', ');
-                const wardName = parts[parts.length - 3];
-                const districtName = parts[parts.length - 2];
-                const provinceName = parts[parts.length - 1];
-
-                detailAddressInput.value = detail;
-
-                // Province
-                const prov = locationData.find(p => p.name === provinceName);
-                if (prov) {
-                    provinceSelect.value = prov.level1_id;
-                    updateDistricts(prov.level1_id);
-
-                    setTimeout(() => {
-                        // District
-                        const dist = prov.level2s.find(d => d.name === districtName);
-                        if (dist) {
-                            districtSelect.value = dist.level2_id;
-                            updateWards(prov.level1_id, dist.level2_id);
-
-                            setTimeout(() => {
-                                // Ward
-                                const ward = dist.level3s.find(w => w.name === wardName);
-                                if (ward) {
-                                    wardSelect.value = ward.level3_id;
-                                }
-                            }, 100);
-                        }
-                    }, 100);
-                }
-            } else {
-                detailAddressInput.value = currentAddress;
-            }
-        }
-
-        // Event listeners
-        provinceSelect.addEventListener('change', function() {
-            updateDistricts(this.value);
-            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-            wardSelect.disabled = true;
-        });
-
-        districtSelect.addEventListener('change', function() {
-            updateWards(provinceSelect.value, this.value);
-        });
-    }
-
-    function updateDistricts(provinceId) {
-        const districtSelect = document.getElementById('district');
-        districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-
-        if (!provinceId) {
-            districtSelect.disabled = true;
-            return;
-        }
-
-        const province = locationData.find(p => p.level1_id === provinceId);
-        if (province && province.level2s) {
-            province.level2s.forEach(d => {
-                districtSelect.add(new Option(d.name, d.level2_id));
-            });
-            districtSelect.disabled = false;
-        } else {
-            districtSelect.disabled = true;
-        }
-    }
-
-    function updateWards(provinceId, districtId) {
-        const wardSelect = document.getElementById('ward');
-        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-
-        if (!provinceId || !districtId) {
-            wardSelect.disabled = true;
-            return;
-        }
-
-        const province = locationData.find(p => p.level1_id === provinceId);
-        if (province && province.level2s) {
-            const district = province.level2s.find(d => d.level2_id === districtId);
-            if (district && district.level3s) {
-                district.level3s.forEach(w => {
-                    wardSelect.add(new Option(w.name, w.level3_id));
-                });
-                wardSelect.disabled = false;
-            } else {
-                wardSelect.disabled = true;
-            }
-        } else {
-            wardSelect.disabled = true;
-        }
-    }
-
-    function saveAddress() {
-        const orderIdElement = document.querySelector('[data-order-id]');
-        const orderId = orderIdElement ? orderIdElement.getAttribute('data-order-id') : /*[[${order.id}]]*/ 0;
-
-        if (!orderId || orderId === '0') {
-            Swal.fire('Lỗi', 'Không tìm thấy thông tin đơn hàng!', 'error');
-            return;
-        }
-
-        const hoTen = document.getElementById('editHoTen').value;
-        const soDienThoai = document.getElementById('editSoDienThoai').value;
-        const provinceSelect = document.getElementById('province');
-        const districtSelect = document.getElementById('district');
-        const wardSelect = document.getElementById('ward');
-        const detail = document.getElementById('detailAddress').value;
-
-        if (!hoTen || !soDienThoai || !provinceSelect.value || !districtSelect.value || !wardSelect.value || !detail) {
-            Swal.fire('Lỗi', 'Vui lòng điền đầy đủ thông tin giao hàng!', 'warning');
-            return;
-        }
-
-        const provinceName = provinceSelect.options[provinceSelect.selectedIndex].text;
-        const districtName = districtSelect.options[districtSelect.selectedIndex].text;
-        const wardName = wardSelect.options[wardSelect.selectedIndex].text;
-
-        const fullAddress = `${detail}, ${wardName}, ${districtName}, ${provinceName}`;
-
-        const formData = new FormData();
-        formData.append('hoTen', hoTen);
-        formData.append('soDienThoai', soDienThoai);
-        formData.append('diaChi', fullAddress);
-
-        fetch('/order/update-address/' + orderId, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-            .then(res => res.text())
-            .then(data => {
-                if (data === 'SUCCESS') {
-                    Swal.fire('Thành công', 'Địa chỉ giao hàng đã được cập nhật.', 'success')
-                        .then(() => location.reload());
-                } else {
-                    Swal.fire('Lỗi', data, 'error');
-                }
-            })
-            .catch(() => {
-                Swal.fire('Lỗi', 'Không thể kết nối máy chủ', 'error');
-            });
-    }
-</script>
+<script th:src="@{/js/my-order-detail.js}"></script>
 </body>
 </html>

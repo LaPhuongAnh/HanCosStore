@@ -24,6 +24,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+// Service thống kê doanh thu, số đơn và xuất báo cáo Excel theo khoảng thời gian.
 public class ThongKeService {
 
     private final DonHangRepository donHangRepository;
@@ -65,11 +66,11 @@ public class ThongKeService {
 
     public Map<String, Object> getDoanhThuTrongKhoang(Instant tuNgay, Instant denNgay) {
         BigDecimal doanhThuThucTe = donHangRepository.sumTongTienByTrangThaiInRange(
-            List.of("COMPLETED"), tuNgay, denNgay);
+            List.of("HOAN_THANH", "COMPLETED", "DELIVERED"), tuNgay, denNgay);
         BigDecimal doanhThuTamTinh = donHangRepository.sumTongTienByTrangThaiInRange(
-            List.of("PENDING", "PROCESSING", "SHIPPED", "DELIVERED"), tuNgay, denNgay);
+            List.of("CHO_XAC_NHAN", "DA_XAC_NHAN", "DANG_GIAO", "PENDING", "CONFIRMED", "SHIPPING", "PROCESSING", "SHIPPED"), tuNgay, denNgay);
         BigDecimal doanhThuThatThoat = donHangRepository.sumTongTienByTrangThaiInRange(
-            List.of("CANCELLED"), tuNgay, denNgay);
+            List.of("DA_HUY", "CANCELLED"), tuNgay, denNgay);
         Long soDon = donHangRepository.countDonHangTrongKhoang(tuNgay, denNgay);
 
         Map<String, Object> stats = new HashMap<>();

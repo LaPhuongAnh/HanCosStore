@@ -6,128 +6,7 @@
     <title>Chỉnh Sửa Sản Phẩm - HANCOS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI','Roboto','Helvetica','Arial',sans-serif; background:#f5f5f5; color:#333; }
-        .header { background:#fff; border-bottom:1px solid #e0e0e0; padding:15px 0; position:sticky; top:0; z-index:100; }
-        .header-content { max-width:1400px; margin:0 auto; padding:0 40px; display:flex; justify-content:space-between; align-items:center; }
-        .logo { font-size:24px; font-weight:700; letter-spacing:2px; }
-        .nav-links { display:flex; gap:40px; align-items:center; }
-        .nav-links a { color:#333; text-decoration:none; font-size:13px; font-weight:500; letter-spacing:.5px; text-transform:uppercase; }
-        .nav-links a:hover { color:#8b4d4d; }
-
-        .banner { background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); color:#fff; padding:60px 40px; text-align:center; }
-        .banner h1 { font-size:36px; font-weight:700; letter-spacing:3px; text-transform:uppercase; margin-bottom:10px; }
-        .banner p { opacity:.9; }
-
-        .container { max-width:1400px; margin:40px auto; padding:0 40px; }
-        .form-container { background:#fff; box-shadow:0 2px 10px rgba(0,0,0,.08); padding:50px; }
-
-        .section { margin-bottom:40px; padding-bottom:40px; border-bottom:1px solid #e0e0e0; }
-        .section:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
-        .section-title { font-size:18px; font-weight:600; margin-bottom:30px; padding-bottom:15px; border-bottom:2px solid #8b4d4d; text-transform:uppercase; letter-spacing:1px; }
-
-        .form-row { display:grid; grid-template-columns:repeat(2, 1fr); gap:25px; margin-bottom:25px; }
-        .form-row.full { grid-template-columns:1fr; }
-        .form-group { display:flex; flex-direction:column; }
-
-        label { font-size:13px; font-weight:600; margin-bottom:10px; text-transform:uppercase; letter-spacing:.5px; }
-        label .required { color:#8b4d4d; }
-
-        input, select, textarea {
-            padding:14px 16px;
-            border:1px solid #ddd;
-            border-radius:0;
-            font-size:14px;
-            font-family:inherit;
-            transition:all .2s;
-            background:#fff;
-        }
-        input:focus, select:focus, textarea:focus { outline:none; border-color:#8b4d4d; }
-        textarea { resize:vertical; min-height:100px; }
-
-        .variant-item, .image-item {
-            background:#fafafa;
-            border:1px solid #e0e0e0;
-            padding:30px;
-            margin-bottom:20px;
-            position:relative;
-        }
-        .item-header {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            margin-bottom:20px;
-            padding-bottom:12px;
-            border-bottom:1px solid #e0e0e0;
-        }
-        .item-number { font-weight:600; color:#8b4d4d; text-transform:uppercase; letter-spacing:.5px; font-size:13px; }
-
-        .btn {
-            padding:14px 32px;
-            border:none;
-            font-size:13px;
-            font-weight:600;
-            cursor:pointer;
-            transition:all .2s;
-            text-transform:uppercase;
-            letter-spacing:1px;
-            border-radius:0;
-            display:inline-flex;
-            align-items:center;
-            gap:6px;
-            justify-content:center;
-            line-height:1;
-        }
-        .btn-primary { background:#8b4d4d; color:#fff; }
-        .btn-primary:hover { background:#6d3838; }
-        .btn-secondary { background:#fff; color:#333; border:1px solid #ddd; }
-        .btn-secondary:hover { background:#f5f5f5; }
-        .btn-danger { background:transparent; color:#e74c3c; border:1px solid #e74c3c; padding:8px 16px; font-size:12px; }
-        .btn-danger:hover { background:#e74c3c; color:#fff; }
-        .btn-add { background:#fff; color:#8b4d4d; border:2px solid #8b4d4d; }
-        .btn-add:hover { background:#8b4d4d; color:#fff; }
-
-        .preview-img { width:80px; height:80px; object-fit:cover; border:1px solid #ddd; margin-top:10px; display:none; }
-        .preview-img.show { display:block; }
-
-        .checkbox-group { display:flex; align-items:center; gap:10px; margin-top:10px; }
-        .checkbox-group input { width:18px; height:18px; }
-        .checkbox-group label { margin:0; text-transform:none; font-weight:500; font-size:14px; letter-spacing:0; }
-
-        .actions { display:flex; gap:16px; justify-content:center; margin-top:35px; padding-top:30px; border-top:1px solid #e0e0e0; }
-
-        .loading {
-            display:none;
-            position:fixed;
-            top:0; left:0;
-            width:100%; height:100%;
-            background:rgba(255,255,255,.82);
-            z-index:1000;
-            justify-content:center;
-            align-items:center;
-            flex-direction:column;
-            gap:10px;
-        }
-        .loading.show { display:flex; }
-        .spinner {
-            border:4px solid #f3f3f3;
-            border-top:4px solid #8b4d4d;
-            border-radius:50%;
-            width:42px; height:42px;
-            animation:spin 1s linear infinite;
-        }
-        @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
-
-        @media (max-width: 768px) {
-            .form-row { grid-template-columns:1fr; }
-            .header-content, .container { padding:0 20px; }
-            .form-container { padding:30px 20px; }
-            .banner h1 { font-size:26px; }
-            .nav-links { gap:18px; }
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/editsanpham-page.css}">
 </head>
 
 <body>
@@ -152,7 +31,7 @@
 
 <div class="container">
     <div class="form-container">
-        <form id="editForm">
+        <form id="editForm" method="post" th:action="@{/admin/san-pham/edit/{id}(id=${product.id})}">
             <input type="hidden" id="productId" th:value="${product.id}">
 
             <!-- Thông tin cơ bản -->
@@ -166,18 +45,18 @@
                     </div>
                     <div class="form-group">
                         <label>Tên Sản Phẩm <span class="required">*</span></label>
-                        <input type="text" id="ten" th:value="${product.ten}" required>
+                        <input type="text" id="ten" name="ten" th:value="${product.ten}" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Chất Liệu</label>
-                        <input type="text" id="chatLieu" th:value="${product.chatLieu}">
+                        <input type="text" id="chatLieu" name="chatLieu" th:value="${product.chatLieu}">
                     </div>
                     <div class="form-group">
                         <label>Giới Tính</label>
-                        <select id="gioiTinh">
+                        <select id="gioiTinh" name="gioiTinh">
                             <option value="UNISEX" th:selected="${product.gioiTinh == 'UNISEX'}">Unisex</option>
                             <option value="NAM" th:selected="${product.gioiTinh == 'NAM'}">Nam</option>
                             <option value="NU" th:selected="${product.gioiTinh == 'NU'}">Nữ</option>
@@ -203,20 +82,21 @@
                         <select id="danhMucId">
                             <option value="">-- Chọn danh mục con --</option>
                         </select>
+                        <input type="hidden" id="finalDanhMucId" name="danhMucId">
                     </div>
                 </div>
 
                 <div class="form-row full">
                     <div class="form-group">
                         <label>Mô Tả Ngắn</label>
-                        <textarea id="moTaNgan" rows="3" th:text="${product.moTaNgan}"></textarea>
+                        <textarea id="moTaNgan" name="moTaNgan" rows="3" th:text="${product.moTaNgan}"></textarea>
                     </div>
                 </div>
 
                 <div class="form-row full">
                     <div class="form-group">
                         <label>Mô Tả Chi Tiết</label>
-                        <textarea id="moTa" rows="5" th:text="${product.moTa}"></textarea>
+                        <textarea id="moTa" name="moTa" rows="5" th:text="${product.moTa}"></textarea>
                     </div>
                 </div>
             </div>
@@ -282,6 +162,7 @@
 <script th:inline="javascript">
     const initialProduct = /*[[${product}]]*/ {};
     const API_URL = '/api';
+    const pendingUploads = new Set();
     let activeGalleryImageIndex = null;
     let activeColorImageIndex = null;
 
@@ -394,9 +275,9 @@
 
     function updateSKUItem(item) {
         const maSP = (document.getElementById('maSanPham').value || '').trim();
-        const mauEl = item.querySelector('select[name="mauSac"]');
-        const sizeEl = item.querySelector('select[name="kichCo"]');
-        const skuEl = item.querySelector('input[name="maSKU"]');
+        const mauEl = item.querySelector('select[name$=".mauSac"]');
+        const sizeEl = item.querySelector('select[name$=".kichCo"]');
+        const skuEl = item.querySelector('input[name$=".maSKU"]');
 
         if (!mauEl || !sizeEl || !skuEl) return;
 
@@ -421,6 +302,24 @@
             item.setAttribute('data-index', i);
             const num = item.querySelector('.item-number');
             if (num) num.innerHTML = `<i class="fas fa-tags"></i> Biến thể #${i + 1}`;
+
+            const idInput = item.querySelector('input[data-field="id"]');
+            const mauSac = item.querySelector('select[data-field="mauSac"]');
+            const kichCo = item.querySelector('select[data-field="kichCo"]');
+            const maSKU = item.querySelector('input[data-field="maSKU"]');
+            const soLuongTon = item.querySelector('input[data-field="soLuongTon"]');
+            const gia = item.querySelector('input[data-field="gia"]');
+            const giaGoc = item.querySelector('input[data-field="giaGoc"]');
+            const trangThai = item.querySelector('input[data-field="trangThai"]');
+
+            if (idInput) idInput.name = `bienThes[${i}].id`;
+            if (mauSac) mauSac.name = `bienThes[${i}].mauSac`;
+            if (kichCo) kichCo.name = `bienThes[${i}].kichCo`;
+            if (maSKU) maSKU.name = `bienThes[${i}].maSKU`;
+            if (soLuongTon) soLuongTon.name = `bienThes[${i}].soLuongTon`;
+            if (gia) gia.name = `bienThes[${i}].gia`;
+            if (giaGoc) giaGoc.name = `bienThes[${i}].giaGoc`;
+            if (trangThai) trangThai.name = `bienThes[${i}].trangThai`;
         });
     }
 
@@ -442,17 +341,17 @@
 
             const previewId = `preview_img_${i}`;
 
-            if (hidden) hidden.name = `images[${i}].duongDanAnh`;
-            if (thuTu) thuTu.name = `images[${i}].thuTu`;
+            if (hidden) hidden.name = `hinhAnhSanPhams[${i}].duongDanAnh`;
+            if (thuTu) thuTu.name = `hinhAnhSanPhams[${i}].thuTu`;
             if (cb) {
-                cb.name = `images[${i}].laAnhChinh`;
+                cb.name = `hinhAnhSanPhams[${i}].laAnhChinh`;
                 cb.id = `primary_${i}`;
                 cb.setAttribute('onchange', `handlePrimaryChange(${i})`);
                 const lb = item.querySelector('label[for^="primary_"]');
                 if (lb) lb.setAttribute('for', `primary_${i}`);
             }
             if (img) img.id = previewId;
-            if (file) file.setAttribute('onchange', `uploadFile(this, 'images[${i}].duongDanAnh', '${previewId}')`);
+            if (file) file.setAttribute('onchange', `uploadFile(this, 'hinhAnhSanPhams[${i}].duongDanAnh', '${previewId}')`);
         });
     }
 
@@ -473,10 +372,10 @@
 
             const previewId = `preview_color_img_${i}`;
 
-            if (sel) sel.name = `colorImages[${i}].mauSac`;
-            if (hidden) hidden.name = `colorImages[${i}].duongDanAnh`;
+            if (sel) sel.name = `hinhAnhMauSacs[${i}].mauSac`;
+            if (hidden) hidden.name = `hinhAnhMauSacs[${i}].duongDanAnh`;
             if (img) img.id = previewId;
-            if (file) file.setAttribute('onchange', `uploadFile(this, 'colorImages[${i}].duongDanAnh', '${previewId}')`);
+            if (file) file.setAttribute('onchange', `uploadFile(this, 'hinhAnhMauSacs[${i}].duongDanAnh', '${previewId}')`);
         });
     }
 
@@ -487,7 +386,7 @@
 
         const html = `
       <div class="variant-item" data-index="${index}">
-        <input type="hidden" name="id" value="${data ? (data.id ?? '') : ''}">
+        <input type="hidden" data-field="id" name="bienThes[${index}].id" value="${data ? (data.id ?? '') : ''}">
 
         <div class="item-header">
           <span class="item-number"><i class="fas fa-tags"></i> Biến thể #${index + 1}</span>
@@ -499,7 +398,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>Màu Sắc <span class="required">*</span></label>
-            <select name="mauSac" required onchange="updateSKUFromEl(this)">
+            <select data-field="mauSac" name="bienThes[${index}].mauSac" required onchange="updateSKUFromEl(this)">
               <option value="">-- Chọn màu --</option>
               ${renderOptions(COLORS, data ? data.mauSac : '')}
             </select>
@@ -507,7 +406,7 @@
 
           <div class="form-group">
             <label>Kích Cỡ <span class="required">*</span></label>
-            <select name="kichCo" required onchange="updateSKUFromEl(this)">
+            <select data-field="kichCo" name="bienThes[${index}].kichCo" required onchange="updateSKUFromEl(this)">
               <option value="">-- Chọn size --</option>
               ${renderOptions(SIZES, data ? data.kichCo : '')}
             </select>
@@ -517,14 +416,14 @@
         <div class="form-row">
           <div class="form-group">
             <label>Mã SKU <span class="required">*</span></label>
-            <input type="text" name="maSKU" required readonly
+                 <input type="text" data-field="maSKU" name="bienThes[${index}].maSKU" required readonly
                    value="${data ? (data.maSKU ?? '') : ''}"
                    placeholder="AO_PHAO_AKP_DEN_S">
           </div>
 
           <div class="form-group">
             <label>Số Lượng Tồn <span class="required">*</span></label>
-            <input type="number" name="soLuongTon" required min="0"
+                 <input type="number" data-field="soLuongTon" name="bienThes[${index}].soLuongTon" required min="0"
                    value="${data ? (data.soLuongTon ?? 0) : 0}">
           </div>
         </div>
@@ -532,14 +431,15 @@
         <div class="form-row">
           <div class="form-group">
             <label>Giá Bán <span class="required">*</span></label>
-            <input type="number" name="gia" required min="0"
+                 <input type="number" data-field="gia" name="bienThes[${index}].gia" required min="0"
                    value="${data ? (data.gia ?? 0) : 0}">
           </div>
 
           <div class="form-group">
             <label>Giá Gốc</label>
-            <input type="number" name="giaGoc" min="0"
+                 <input type="number" data-field="giaGoc" name="bienThes[${index}].giaGoc" min="0"
                    value="${data && data.giaGoc != null ? data.giaGoc : ''}">
+                 <input type="hidden" data-field="trangThai" name="bienThes[${index}].trangThai" value="ACTIVE">
           </div>
         </div>
       </div>
@@ -558,8 +458,15 @@
         reindexVariantsUI();
     }
 
+    function trackUpload(promise) {
+        pendingUploads.add(promise);
+        promise.finally(() => pendingUploads.delete(promise));
+        return promise;
+    }
+
     // ===== Upload (shared) =====
     async function uploadFile(input, hiddenInputName, previewId) {
+        const uploadPromise = (async () => {
         const file = input.files && input.files[0];
         if (!file) return;
 
@@ -576,21 +483,44 @@
         try {
             const res = await fetch(`${API_URL}/upload`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             });
 
             if (res.ok) {
                 const path = await res.text();
-                const hidden = document.querySelector(`input[name="${hiddenInputName}"]`);
+                const item = input.closest('.image-item');
+                const hidden = item
+                    ? item.querySelector('input[type="hidden"]')
+                    : document.querySelector(`input[name="${hiddenInputName}"]`);
                 if (hidden) hidden.value = path;
             } else {
-                const msg = await res.text();
+                let msg = await res.text();
+                if (!msg || !msg.trim()) msg = `HTTP ${res.status}`;
+
+                // Session timeout from AuthInterceptor for AJAX/API requests.
+                if (res.status === 401) {
+                    try {
+                        const parsed = JSON.parse(msg);
+                        if (parsed && parsed.message) msg = parsed.message;
+                    } catch (_) {
+                        // keep raw text fallback
+                    }
+
+                    await Swal.fire('Phiên đăng nhập đã hết hạn', msg, 'warning');
+                    window.location.href = '/login';
+                    return;
+                }
+
                 Swal.fire('Lỗi!', `Upload thất bại: ${msg}`, 'error');
             }
         } catch (e) {
             Swal.fire('Lỗi!', `Upload lỗi kết nối: ${e.message}`, 'error');
         }
+        })();
+
+        return trackUpload(uploadPromise);
     }
 
     // ===== Images Gallery =====
@@ -615,9 +545,9 @@
             <input type="file"
                    class="file-upload"
                    accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.tif,.tiff,.heic,.heif,image/*"
-                   onchange="uploadFile(this, 'images[${index}].duongDanAnh', '${previewId}')">
+                     onchange="uploadFile(this, 'hinhAnhSanPhams[${index}].duongDanAnh', '${previewId}')">
 
-            <input type="hidden" name="images[${index}].duongDanAnh" required value="${data ? (data.duongDanAnh ?? '') : ''}">
+                 <input type="hidden" name="hinhAnhSanPhams[${index}].duongDanAnh" required value="${data ? (data.duongDanAnh ?? '') : ''}">
 
             <img id="${previewId}" class="preview-img ${data && data.duongDanAnh ? 'show' : ''}"
                  src="${data && data.duongDanAnh ? data.duongDanAnh : ''}" alt="Preview">
@@ -625,11 +555,11 @@
 
           <div class="form-group">
             <label>Thứ Tự</label>
-            <input type="number" name="images[${index}].thuTu" min="1"
+                        <input type="number" name="hinhAnhSanPhams[${index}].thuTu" min="1"
                    value="${data ? (data.thuTu ?? (index + 1)) : (index + 1)}">
 
             <div class="checkbox-group">
-              <input type="checkbox" name="images[${index}].laAnhChinh" id="primary_${index}"
+                            <input type="checkbox" name="hinhAnhSanPhams[${index}].laAnhChinh" id="primary_${index}"
                      ${data && data.laAnhChinh ? 'checked' : (index === 0 ? 'checked' : '')}
                      onchange="handlePrimaryChange(${index})">
               <label for="primary_${index}">Đặt làm ảnh chính</label>
@@ -704,7 +634,7 @@
         if (!fileInput || Number.isNaN(imageIndex)) return;
 
         setFileToInput(fileInput, file);
-        uploadFile(fileInput, `images[${imageIndex}].duongDanAnh`, `preview_img_${imageIndex}`);
+        uploadFile(fileInput, `hinhAnhSanPhams[${imageIndex}].duongDanAnh`, `preview_img_${imageIndex}`);
     }
 
     function handlePrimaryChange(index) {
@@ -730,7 +660,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>Màu Sắc <span class="required">*</span></label>
-            <select name="colorImages[${index}].mauSac" required>
+            <select name="hinhAnhMauSacs[${index}].mauSac" required>
               <option value="">-- Chọn màu --</option>
               ${renderOptions(COLORS, data ? data.mauSac : '')}
             </select>
@@ -742,9 +672,9 @@
             <input type="file"
                    class="file-upload"
                    accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.tif,.tiff,.heic,.heif,image/*"
-                   onchange="uploadFile(this, 'colorImages[${index}].duongDanAnh', '${previewId}')">
+                     onchange="uploadFile(this, 'hinhAnhMauSacs[${index}].duongDanAnh', '${previewId}')">
 
-            <input type="hidden" name="colorImages[${index}].duongDanAnh" required value="${data ? (data.duongDanAnh ?? '') : ''}">
+                 <input type="hidden" name="hinhAnhMauSacs[${index}].duongDanAnh" required value="${data ? (data.duongDanAnh ?? '') : ''}">
 
             <img id="${previewId}" class="preview-img ${data && data.duongDanAnh ? 'show' : ''}"
                  src="${data && data.duongDanAnh ? data.duongDanAnh : ''}" alt="Preview">
@@ -806,7 +736,7 @@
         if (!fileInput || Number.isNaN(colorIndex)) return;
 
         setFileToInput(fileInput, file);
-        uploadFile(fileInput, `colorImages[${colorIndex}].duongDanAnh`, `preview_color_img_${colorIndex}`);
+        uploadFile(fileInput, `hinhAnhMauSacs[${colorIndex}].duongDanAnh`, `preview_color_img_${colorIndex}`);
     }
 
     // ===== Sync Colors (from variants -> colorImages) =====
@@ -815,7 +745,7 @@
     }
 
     function getVariantColors() {
-        const colors = Array.from(document.querySelectorAll('#variantsList select[name="mauSac"]'))
+        const colors = Array.from(document.querySelectorAll('#variantsList select[name$=".mauSac"]'))
             .map(el => (el.value || '').trim())
             .filter(v => v !== "");
 
@@ -833,7 +763,7 @@
 
     function getExistingColorImageKeys() {
         const keys = new Set();
-        document.querySelectorAll('#colorImagesList select[name^="colorImages["][name$="].mauSac"]').forEach(sel => {
+        document.querySelectorAll('#colorImagesList select[name$=".mauSac"]').forEach(sel => {
             const v = (sel.value || '').trim();
             if (v) keys.add(normalizeColorKey(v));
         });
@@ -871,68 +801,57 @@
         e.preventDefault();
         document.getElementById('loading').classList.add('show');
 
+        if (pendingUploads.size > 0) {
+            await Promise.allSettled(Array.from(pendingUploads));
+        }
+
         // Ensure latest SKU update for all variants before submit
         document.querySelectorAll('#variantsList .variant-item').forEach(item => updateSKUItem(item));
 
-        const dto = {
-            id: parseInt(document.getElementById('productId').value),
-            ten: document.getElementById('ten').value.trim(),
-            chatLieu: document.getElementById('chatLieu').value.trim(),
-            gioiTinh: document.getElementById('gioiTinh').value,
-            danhMucId: document.getElementById('danhMucId').value
-                ? parseInt(document.getElementById('danhMucId').value)
-                : (document.getElementById('parentDanhMucId').value ? parseInt(document.getElementById('parentDanhMucId').value) : null),
-            moTaNgan: document.getElementById('moTaNgan').value.trim(),
-            moTa: document.getElementById('moTa').value.trim(),
+        // Resolve final category from child or parent selection.
+        const childDanhMucId = document.getElementById('danhMucId').value;
+        const parentDanhMucId = document.getElementById('parentDanhMucId').value;
+        document.getElementById('finalDanhMucId').value = childDanhMucId || parentDanhMucId || '';
 
-            bienThes: Array.from(document.querySelectorAll('#variantsList .variant-item')).map(el => ({
-                id: el.querySelector('input[name="id"]').value ? parseInt(el.querySelector('input[name="id"]').value) : null,
-                mauSac: el.querySelector('select[name="mauSac"]').value,
-                kichCo: el.querySelector('select[name="kichCo"]').value,
-                maSKU: el.querySelector('input[name="maSKU"]').value,
-                soLuongTon: parseInt(el.querySelector('input[name="soLuongTon"]').value) || 0,
-                gia: parseFloat(el.querySelector('input[name="gia"]').value) || 0,
-                giaGoc: el.querySelector('input[name="giaGoc"]').value ? parseFloat(el.querySelector('input[name="giaGoc"]').value) : null,
-                trangThai: 'ACTIVE'
-            })),
-
-            hinhAnhSanPhams: Array.from(document.querySelectorAll('#imagesList .image-item')).map((el, i) => ({
-                duongDanAnh: el.querySelector('input[type="hidden"]').value,
-                thuTu: parseInt(el.querySelector('input[name*=".thuTu"]').value) || (i + 1),
-                laAnhChinh: !!el.querySelector('input[type="checkbox"]')?.checked
-            })),
-
-            hinhAnhMauSacs: Array.from(document.querySelectorAll('#colorImagesList .image-item')).map(el => ({
-                mauSac: el.querySelector('select[name*=".mauSac"]').value,
-                duongDanAnh: el.querySelector('input[type="hidden"]').value
-            }))
-        };
-
-        try {
-            const res = await fetch(`${API_URL}/san-pham/${dto.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(dto)
-            });
-
-            document.getElementById('loading').classList.remove('show');
-
-            if (res.ok) {
-                Swal.fire('Thành công!', 'Đã cập nhật sản phẩm.', 'success')
-                    .then(() => window.location.href = '/san-pham');
-            } else {
-                const msg = await res.text();
-                Swal.fire('Lỗi!', msg, 'error');
+        // Remove gallery items that do not have uploaded path.
+        Array.from(document.querySelectorAll('#imagesList .image-item')).forEach((el) => {
+            const hidden = el.querySelector('input[type="hidden"]');
+            if (!hidden || !hidden.value || hidden.value.trim() === '') {
+                el.remove();
             }
-        } catch (e2) {
+        });
+
+        // Remove invalid color image items.
+        Array.from(document.querySelectorAll('#colorImagesList .image-item')).forEach((el) => {
+            const mauSac = el.querySelector('select[name$=".mauSac"]')?.value || '';
+            const hidden = el.querySelector('input[type="hidden"]');
+            if (!mauSac.trim() || !hidden || !hidden.value || hidden.value.trim() === '') {
+                el.remove();
+            }
+        });
+
+        reindexVariantsUI();
+        reindexImages();
+        reindexColorImages();
+
+        const galleryItems = document.querySelectorAll('#imagesList .image-item');
+        if (galleryItems.length === 0) {
             document.getElementById('loading').classList.remove('show');
-            Swal.fire('Lỗi!', e2.message, 'error');
+            Swal.fire('Thiếu ảnh', 'Vui lòng tải lên ít nhất 1 ảnh gallery trước khi lưu.', 'warning');
+            return;
         }
+
+        // Ensure one primary image for backend rule.
+        const checkedMain = document.querySelector('#imagesList input[type="checkbox"]:checked');
+        if (!checkedMain) {
+            const firstMain = document.querySelector('#imagesList input[type="checkbox"]');
+            if (firstMain) firstMain.checked = true;
+        }
+
+        e.target.submit();
     });
 </script>
 </body>
 </html>
+
 

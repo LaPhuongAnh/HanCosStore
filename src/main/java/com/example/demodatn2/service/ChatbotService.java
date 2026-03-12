@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
+// Service chatbot: xử lý hỏi đáp sản phẩm và tra cứu trạng thái đơn hàng cho người dùng.
 public class ChatbotService {
 
     private static final Pattern ORDER_CODE_PATTERN = Pattern.compile("(?i)\\bDH-[A-Z0-9]{4,12}\\b");
@@ -151,14 +152,14 @@ public class ChatbotService {
         if (status == null) {
             return "Không xác định";
         }
-        return switch (status) {
-            case "PENDING" -> "Chờ xử lý";
-            case "PENDING_PAYMENT" -> "Chờ thanh toán";
-            case "PROCESSING" -> "Đang xử lý";
-            case "SHIPPED" -> "Đang giao";
-            case "DELIVERED" -> "Đã giao";
-            case "COMPLETED" -> "Hoàn tất";
-            case "CANCELLED" -> "Đã hủy";
+        String normalized = status.trim().toUpperCase();
+        return switch (normalized) {
+            case "CHO_XAC_NHAN", "PENDING", "PENDING_PAYMENT" -> "Chờ xác nhận";
+            case "DA_XAC_NHAN", "CONFIRMED", "PROCESSING" -> "Đã xác nhận";
+            case "DANG_GIAO", "SHIPPING", "SHIPPED" -> "Đang giao";
+            case "HOAN_THANH", "DELIVERED", "COMPLETED" -> "Hoàn thành";
+            case "TRA_HANG", "RETURN_REQUESTED", "RETURNED" -> "Trả hàng";
+            case "DA_HUY", "CANCELLED" -> "Đã hủy";
             default -> status;
         };
     }

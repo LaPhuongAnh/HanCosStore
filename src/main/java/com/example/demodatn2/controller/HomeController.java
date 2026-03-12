@@ -8,6 +8,9 @@ import com.example.demodatn2.service.DanhMucService;
 import com.example.demodatn2.service.HomeService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +32,7 @@ public class HomeController {
     public String home(Model model, 
                        @RequestParam(required = false) Integer danhMucId, 
                        @RequestParam(required = false) String q,
+                       @RequestParam(defaultValue = "0") int page,
                        HttpSession session) {
         session.getId(); // Force session creation
         // Cập nhật số lượng giỏ hàng
@@ -36,9 +40,13 @@ public class HomeController {
             session.setAttribute("CART_COUNT", cartService.getItemCount(session));
         }
 
-        // 1. Lấy danh sách sản phẩm
-        List<HomeProductVM> products = homeService.getHomeProducts(danhMucId, q);
-        model.addAttribute("products", products);
+        // 1. Lấy danh sách sản phẩm (phân trang)
+        int pageSize = 12;
+        PageRequest pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "ngayTao"));
+        Page<HomeProductVM> productPage = homeService.getHomeProductsPage(danhMucId, q, pageable);
+        model.addAttribute("products", productPage.getContent());
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("currentPage", page);
         model.addAttribute("selectedDanhMucId", danhMucId);
         model.addAttribute("query", q);
 

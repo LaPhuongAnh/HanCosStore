@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bán hàng tại quầy - HANCOS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/ban-hang-tai-quay.css}">
+</head>
+<body>
+
+<!-- ═══ Sidebar ═══ -->
+<div th:replace="~{admin/fragments/sidebar :: sidebar('pos')}"></div>
+
+<!-- ═══ Main Content ═══ -->
+<div class="main-content">
+    <header class="top-header">
+        <h4 class="fw-800 mb-0 text-uppercase letter-spacing-1">
+            <i class="fas fa-cash-register me-2"></i>Bán hàng tại quầy
+        </h4>
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-end d-none d-sm-block">
+                <p class="fw-700 mb-0" th:text="${session.LOGIN_USER.hoTen}">Nhân viên</p>
+                <small class="text-muted text-uppercase" style="font-size:10px; letter-spacing:1px;">Nhân viên bán hàng</small>
+            </div>
+            <div class="rounded-circle bg-soft-primary d-flex align-items-center justify-content-center" style="width:45px;height:45px;">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ POS Container ═══ -->
+    <div class="pos-container">
+
+        <!-- ═══ LEFT: Products ═══ -->
+        <div class="pos-left">
+            <!-- Search -->
+            <div class="pos-search-bar">
+                <div class="pos-search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" id="searchProduct" placeholder="Tìm kiếm sản phẩm...">
+                </div>
+            </div>
+
+            <!-- Category menu bar -->
+            <nav class="pos-categories" id="categoryBar">
+                <div class="pos-cat-item">
+                    <button class="pos-cat-link active" data-cat="all" onclick="filterCategory('all',this)">Tất cả</button>
+                </div>
+                <th:block th:each="parent : ${categories}">
+                    <!-- Danh mục có con -->
+                    <div class="pos-cat-item" th:if="${parent.danhMucCon != null and !parent.danhMucCon.isEmpty()}">
+                        <button class="pos-cat-link" th:data-cat="${parent.id}" th:onclick="'filterCategory(' + ${parent.id} + ',this)'"
+                                th:text="${parent.ten} + ' ▾'"></button>
+                        <div class="pos-cat-dropdown">
+                            <button th:each="ch : ${parent.danhMucCon}" class="pos-cat-sub"
+                                    th:data-cat="${ch.id}" th:onclick="'filterCategory(' + ${ch.id} + ',this)'"
+                                    th:text="${ch.ten}"></button>
+                        </div>
+                    </div>
+                    <!-- Danh mục không có con -->
+                    <div class="pos-cat-item" th:if="${parent.danhMucCon == null or parent.danhMucCon.isEmpty()}">
+                        <button class="pos-cat-link" th:data-cat="${parent.id}" th:onclick="'filterCategory(' + ${parent.id} + ',this)'"
+                                th:text="${parent.ten}"></button>
+                    </div>
+                </th:block>
+            </nav>
+
+            <!-- Product grid -->
+            <div class="pos-product-grid" id="productGrid">
+                <th:block th:each="p : ${products}">
+                    <th:block th:with="
+                        activeVariants=${p.bienThes.?[trangThai == 'ACTIVE']},
+                        totalStock=${p.tongSoLuongTon != null ? p.tongSoLuongTon : 0}
+                    ">
+                    <div th:if="${!activeVariants.isEmpty()}"
+                         class="pos-product-card"
+                         th:classappend="${totalStock == 0 ? ' out-of-stock' : ''}"
+                         th:data-id="${p.id}"
+                         th:data-cat="${p.danhMucId}"
+                         th:data-pcat="${p.parentDanhMucId}"
+                         th:data-name="${p.ten?.toLowerCase()}"
+                         th:data-code="${p.maSanPham?.toLowerCase()}"
+                         th:onclick="'openVariantModal(' + ${p.id} + ')'">
+                        <div class="prod-img-wrap">
+                            <th:block th:with="mainImg=${
+                                (p.hinhAnhSanPhams != null and !p.hinhAnhSanPhams.isEmpty())
+                                    ? p.hinhAnhSanPhams[0].duongDanAnh
+                                    : ((p.hinhAnhMauSacs != null and !p.hinhAnhMauSacs.isEmpty())
+                                        ? p.hinhAnhMauSacs[0].duongDanAnh : null)
+                            }">
+                                <img th:if="${mainImg != null}" th:src="${mainImg}" alt="">
+                                <i th:if="${mainImg == null}" class="fas fa-image fa-2x text-muted"></i>
+                            </th:block>
+                        </div>
+                        <div class="prod-info">
+                            <div class="prod-name" th:text="${p.ten}" th:title="${p.ten}"></div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="prod-price" th:with="minGia=${activeVariants[0].gia}"
+                                      th:text="${#numbers.formatDecimal(minGia, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                                <span class="prod-stock" th:text="${totalStock > 0 ? 'Kho: ' + totalStock : 'Hết hàng'}"></span>
+                            </div>
+                        </div>
+                        <!-- Variant data ẩn — Thymeleaf render, JS đọc từ DOM -->
+                        <div style="display:none">
+                            <span th:each="v : ${activeVariants}" class="vd"
+                                  th:data-id="${v.id}" th:data-color="${v.mauSac}"
+                                  th:data-size="${v.kichCo}" th:data-price="${v.gia}"
+                                  th:data-stock="${v.soLuongTon}"></span>
+                            <th:block th:if="${p.hinhAnhSanPhams != null}">
+                                <span th:each="img : ${p.hinhAnhSanPhams}" class="vid"
+                                      th:data-url="${img.duongDanAnh}" th:data-main="${img.laAnhChinh}"></span>
+                            </th:block>
+                            <th:block th:if="${p.hinhAnhMauSacs != null}">
+                                <span th:each="img : ${p.hinhAnhMauSacs}" class="vcid"
+                                      th:data-url="${img.duongDanAnh}" th:data-color="${img.mauSac}"></span>
+                            </th:block>
+                        </div>
+                    </div>
+                    </th:block>
+                </th:block>
+                <div id="noProductMsg" style="grid-column:1/-1;text-align:center;padding:3rem;color:#ccc;display:none;">
+                    <i class="fas fa-box-open fa-3x mb-2"></i>
+                    <p>Không tìm thấy sản phẩm</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ RIGHT: Cart ═══ -->
+        <div class="pos-right">
+            <div class="cart-panel">
+                <!-- Cart header -->
+                <div class="cart-header">
+                    <h5><i class="fas fa-shopping-cart me-2"></i>Giỏ hàng <span class="cart-badge" id="cartCount">0</span></h5>
+                    <button class="btn btn-sm btn-outline-danger" onclick="clearCart()" title="Xóa tất cả">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+
+                <!-- Cart items -->
+                <div class="cart-items" id="cartItems">
+                    <div class="cart-empty">
+                        <i class="fas fa-shopping-basket"></i>
+                        <p>Chưa có sản phẩm nào</p>
+                    </div>
+                </div>
+
+                <!-- Customer section -->
+                <div class="cart-customer">
+                    <label>Khách hàng</label>
+                    <div class="cust-mode-tabs">
+                        <button class="cust-mode-btn active" data-mode="guest" onclick="switchCustMode('guest', this)">
+                            <i class="fas fa-user"></i> Khách lẻ
+                        </button>
+                        <button class="cust-mode-btn" data-mode="existing" onclick="switchCustMode('existing', this)">
+                            <i class="fas fa-search"></i> Chọn khách hàng
+                        </button>
+                        <button class="cust-mode-btn" data-mode="new" onclick="switchCustMode('new', this)">
+                            <i class="fas fa-user-plus"></i> Thêm mới
+                        </button>
+                    </div>
+
+                    <!-- Guest mode (default) -->
+                    <div class="cust-mode-panel" id="custPanelGuest">
+                        <div class="cust-guest-info">
+                            <i class="fas fa-user-check"></i>
+                            <span>Khách lẻ — không cần thông tin</span>
+                        </div>
+                    </div>
+
+                    <!-- Existing customer mode -->
+                    <div class="cust-mode-panel" id="custPanelExisting" style="display:none;">
+                        <div class="cust-combobox" id="custCombobox">
+                            <div class="cust-combobox-display" id="custComboDisplay" onclick="toggleCustDropdown()">
+                                <span class="cust-combobox-text" id="custComboText">-- Chọn khách hàng --</span>
+                                <div class="cust-combobox-actions">
+                                    <i class="fas fa-times cust-combobox-clear" id="custComboClear" onclick="event.stopPropagation();clearCustomer()" style="display:none;"></i>
+                                    <i class="fas fa-chevron-down cust-combobox-arrow"></i>
+                                </div>
+                            </div>
+                            <div class="cust-combobox-dropdown" id="custComboDropdown">
+                                <div class="cust-combobox-search">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="custComboSearch" placeholder="Tìm tên, SĐT..." autocomplete="off">
+                                </div>
+                                <div class="cust-combobox-list" id="custComboList">
+                                    <div th:each="c : ${customers}" class="cust-combobox-item"
+                                         th:data-id="${c.id}"
+                                         th:data-name="${(c.hoTen != null ? c.hoTen : c.tenDangNhap).toLowerCase()}"
+                                         th:data-hoten="${c.hoTen != null ? c.hoTen : c.tenDangNhap}"
+                                         th:data-phone="${c.soDienThoai != null ? c.soDienThoai : ''}"
+                                         th:data-email="${c.email != null ? c.email.toLowerCase() : ''}"
+                                         onclick="pickCustomer(this)">
+                                        <div class="cust-combobox-item-name" th:text="${c.hoTen != null ? c.hoTen : c.tenDangNhap}"></div>
+                                        <div class="cust-combobox-item-info">
+                                            <span th:text="${c.soDienThoai ?: ''}"></span> &bull; <span th:text="${c.email ?: ''}"></span>
+                                        </div>
+                                    </div>
+                                    <div class="cust-combobox-empty" id="custNoResult" style="display:none;">
+                                        <i class="fas fa-user-slash"></i> Không tìm thấy
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New customer mode -->
+                    <div class="cust-mode-panel" id="custPanelNew" style="display:none;">
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <input type="text" class="form-control" id="custName" placeholder="Tên khách hàng *">
+                            </div>
+                            <div class="col-6">
+                                <input type="text" class="form-control" id="custPhone" placeholder="Số điện thoại *">
+                            </div>
+                        </div>
+                    </div>
+
+                    <textarea class="form-control note-input" id="orderNote" rows="2" placeholder="Ghi chú đơn hàng..."></textarea>
+                </div>
+
+                <!-- Voucher -->
+                <div class="cart-voucher">
+                    <label class="d-block mb-1" style="font-size:0.78rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Mã giảm giá</label>
+                    <div id="voucherInputArea">
+                        <div class="voucher-input-wrap">
+                            <input type="text" class="form-control" id="voucherCode" placeholder="Nhập mã giảm giá...">
+                            <button class="btn-voucher" onclick="applyVoucher()">Áp dụng</button>
+                        </div>
+                    </div>
+                    <div id="voucherApplied" style="display:none;">
+                        <div class="voucher-applied">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="voucherLabel"></span>
+                            <i class="fas fa-times voucher-remove" onclick="removeVoucher()"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart footer / summary -->
+                <div class="cart-footer">
+                    <div class="cart-summary-row">
+                        <span>Tạm tính:</span>
+                        <span id="subtotal">0₫</span>
+                    </div>
+                    <div class="cart-summary-row" id="discountRow" style="display:none;">
+                        <span>Giảm giá:</span>
+                        <span id="discountAmount" class="text-success">-0₫</span>
+                    </div>
+                    <div class="cart-summary-row total">
+                        <span>Tổng tiền:</span>
+                        <span id="totalAmount">0₫</span>
+                    </div>
+
+                    <!-- Payment method -->
+                    <div class="payment-methods mt-3">
+                        <button class="pay-method-btn active" data-method="cash" onclick="selectPayment('cash',this)">
+                            <i class="fas fa-money-bill-wave"></i>Tiền mặt
+                        </button>
+                        <button class="pay-method-btn" data-method="transfer" onclick="selectPayment('transfer',this)">
+                            <i class="fas fa-exchange-alt"></i>Chuyển khoản
+                        </button>
+                    </div>
+
+                    <!-- Cash -->
+                    <div class="cash-row" id="cashRow">
+                        <label>Tiền khách đưa:</label>
+                        <input type="text" class="form-control" id="cashGiven" placeholder="0" oninput="calcChange()">
+                    </div>
+                    <div class="cash-row" id="changeRow" style="display:none;">
+                        <label>Tiền thừa:</label>
+                        <span class="change-amount" id="changeAmount">0₫</span>
+                    </div>
+
+                    <!-- Transfer -->
+                    <div id="transferRow" style="display:none;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <button class="btn btn-sm btn-outline-primary w-100" onclick="openTransferModal()" style="border-radius:8px;font-weight:700;font-size:0.82rem;">
+                                <i class="fas fa-qrcode me-1"></i>Xem mã QR chuyển khoản
+                            </button>
+                        </div>
+                        <div class="transfer-confirm">
+                            <label class="transfer-check-label">
+                                <input type="checkbox" id="transferConfirm">
+                                <span>Đã xác nhận nhận được tiền chuyển khoản</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="btn-checkout mt-2" id="btnCheckout" onclick="checkout()" disabled>
+                        <i class="fas fa-check-circle me-2"></i>Thanh toán
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Product Variant Modal ═══ -->
+<div class="modal fade variant-modal" id="variantModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-800" id="modalProductName">Chọn phân loại</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <img id="modalProductImg" src="" alt="" style="max-height:180px;border-radius:10px;object-fit:cover;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-700" style="font-size:0.85rem;">Màu sắc</label>
+                    <div class="d-flex flex-wrap gap-2" id="modalColors"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-700" style="font-size:0.85rem;">Kích cỡ</label>
+                    <div class="d-flex flex-wrap gap-2" id="modalSizes"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <span class="variant-price" id="modalPrice">0₫</span>
+                        <span class="variant-stock ms-2" id="modalStock"></span>
+                    </div>
+                    <div class="qty-control">
+                        <button onclick="modalQtyChange(-1)">−</button>
+                        <input type="number" class="qty-val" id="modalQty" value="1" min="1" onchange="modalQtyInput(this)">
+                        <button onclick="modalQtyChange(1)">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn text-white" style="background:var(--primary-color);" onclick="addToCartFromModal()">
+                    <i class="fas fa-cart-plus me-1"></i>Thêm vào giỏ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Transfer QR Modal ═══ -->
+<div class="modal fade" id="transferModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius:15px;border:none;overflow:hidden;">
+            <div class="modal-header" style="background:var(--primary-color);color:#fff;border:none;padding:0.75rem 1.25rem;">
+                <h6 class="modal-title fw-800 mb-0"><i class="fas fa-qrcode me-2"></i>Chuyển khoản</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <div class="transfer-modal-qr mb-3">
+                    <img id="transferQR" src="" alt="QR Chuyển khoản">
+                </div>
+                <div class="transfer-bank mb-2 justify-content-center">
+                    <img id="transferBankLogo" src="" alt="" class="transfer-bank-logo">
+                    <span id="transferBankName">MB Bank</span>
+                </div>
+                <div class="transfer-modal-details">
+                    <div class="transfer-detail justify-content-center">
+                        <span class="transfer-label">STK:</span>
+                        <span class="transfer-value" id="transferSTK">0766128057</span>
+                        <i class="fas fa-copy transfer-copy" onclick="copySTK()" title="Sao chép"></i>
+                    </div>
+                    <div class="transfer-detail justify-content-center">
+                        <span class="transfer-label">Chủ TK:</span>
+                        <span class="transfer-value" id="transferName">TRAN DUC HAI</span>
+                    </div>
+                    <div class="transfer-detail justify-content-center mt-2">
+                        <span class="transfer-label">Số tiền:</span>
+                        <span class="transfer-value text-danger fw-800" style="font-size:1.1rem;" id="transferAmount">0₫</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center" style="border:none;padding:0.5rem 1rem 1rem;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" style="border-radius:8px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Success Overlay ═══ -->
+<div class="success-overlay" id="successOverlay">
+    <div class="success-box">
+        <i class="fas fa-check-circle"></i>
+        <h4>Thanh toán thành công!</h4>
+        <p>Mã hóa đơn: <strong id="successOrderCode"></strong></p>
+        <p>Tổng tiền: <strong id="successTotal" class="text-danger"></strong></p>
+        <button class="btn text-white mt-3" style="background:var(--primary-color);border-radius:10px;font-weight:700;padding:0.6rem 2rem;" onclick="newOrder()">
+            <i class="fas fa-plus me-1"></i>Tạo đơn mới
+        </button>
+    </div>
+</div>
+
+<!-- ═══ Toast Container ═══ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/admin/banhangtaiquay.js}"></script>
+</body>
+</html>

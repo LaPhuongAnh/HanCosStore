@@ -1,3 +1,15 @@
+function updateShippingDisplay(fee) {
+    const el = document.getElementById('shipping-value');
+    if (!el) return;
+    if (fee === 0) {
+        el.textContent = 'Miễn phí';
+        el.style.color = '#198754';
+    } else {
+        el.textContent = new Intl.NumberFormat('vi-VN').format(fee) + '₫';
+        el.style.color = '';
+    }
+}
+
 function updateQuantity(itemId, qty) {
     if (qty < 1) return;
 
@@ -17,6 +29,7 @@ function updateQuantity(itemId, qty) {
                     document.getElementById('discount-row').style.display = 'none';
                 }
                 document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAfterDiscount) + '₫';
+                updateShippingDisplay(data.shippingFee);
 
                 location.reload();
             } else {
@@ -56,6 +69,7 @@ function removeItem(itemId) {
                             document.getElementById('discount-row').style.display = 'none';
                         }
                         document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAfterDiscount) + '₫';
+                        updateShippingDisplay(data.shippingFee);
                         location.reload();
                     }
                 })
@@ -85,6 +99,7 @@ function applyVoucher() {
                 document.getElementById('discount-row').style.display = 'flex';
                 document.getElementById('discount-value').innerText = '-' + new Intl.NumberFormat('vi-VN').format(data.discount) + '₫';
                 document.getElementById('cart-total').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAfterDiscount) + '₫';
+                updateShippingDisplay(data.shippingFee);
             } else {
                 msg.className = 'small mt-2 text-danger';
                 msg.innerText = data.message;

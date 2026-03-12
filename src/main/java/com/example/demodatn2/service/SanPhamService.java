@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
+// Service nghiệp vụ sản phẩm: tạo/sửa/xóa mềm, quản lý biến thể, ảnh và nhập kho.
 public class SanPhamService {
 
     private final SanPhamRepository sanPhamRepository;
@@ -159,24 +161,36 @@ public class SanPhamService {
      * Tạo danh sách hình ảnh sản phẩm
      */
     private List<HinhAnhSanPham> createHinhAnhSanPhams(SanPham sanPham, List<HinhAnhSanPhamDTO> hinhAnhDTOs) {
+        if (hinhAnhDTOs == null || hinhAnhDTOs.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<HinhAnhSanPhamDTO> validDTOs = hinhAnhDTOs.stream()
+                .filter(dto -> dto != null && dto.getDuongDanAnh() != null && !dto.getDuongDanAnh().trim().isEmpty())
+                .collect(Collectors.toList());
+
+        if (validDTOs.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         List<HinhAnhSanPham> hinhAnhs = new ArrayList<>();
 
         // Đảm bảo chỉ có 1 ảnh chính
-        long countAnhChinh = hinhAnhDTOs.stream()
+        long countAnhChinh = validDTOs.stream()
                 .filter(dto -> dto.getLaAnhChinh() != null && dto.getLaAnhChinh())
                 .count();
 
         if (countAnhChinh == 0) {
             // Nếu không có ảnh chính, set ảnh đầu tiên làm ảnh chính
-            hinhAnhDTOs.get(0).setLaAnhChinh(true);
+            validDTOs.get(0).setLaAnhChinh(true);
         } else if (countAnhChinh > 1) {
             throw new RuntimeException("Chỉ được có 1 ảnh chính");
         }
 
-        for (HinhAnhSanPhamDTO dto : hinhAnhDTOs) {
+        for (HinhAnhSanPhamDTO dto : validDTOs) {
             HinhAnhSanPham hinhAnh = new HinhAnhSanPham();
             hinhAnh.setSanPham(sanPham);
-            hinhAnh.setDuongDanAnh(dto.getDuongDanAnh());
+            hinhAnh.setDuongDanAnh(dto.getDuongDanAnh().trim());
             hinhAnh.setLaAnhChinh(dto.getLaAnhChinh() != null ? dto.getLaAnhChinh() : false);
             hinhAnh.setThuTu(dto.getThuTu() != null ? dto.getThuTu() : 0);
             hinhAnh.setNgayTao(Instant.now());
@@ -192,13 +206,23 @@ public class SanPhamService {
      * Tạo danh sách hình ảnh theo màu sắc
      */
     private List<HinhAnhMauSac> createHinhAnhMauSacs(SanPham sanPham, List<HinhAnhMauSacDTO> hinhAnhMauSacDTOs) {
+        if (hinhAnhMauSacDTOs == null || hinhAnhMauSacDTOs.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         List<HinhAnhMauSac> hinhAnhMauSacs = new ArrayList<>();
 
         for (HinhAnhMauSacDTO dto : hinhAnhMauSacDTOs) {
+            if (dto == null
+                    || dto.getMauSac() == null || dto.getMauSac().trim().isEmpty()
+                    || dto.getDuongDanAnh() == null || dto.getDuongDanAnh().trim().isEmpty()) {
+                continue;
+            }
+
             HinhAnhMauSac hinhAnhMauSac = new HinhAnhMauSac();
             hinhAnhMauSac.setSanPham(sanPham);
-            hinhAnhMauSac.setMauSac(dto.getMauSac());
-            hinhAnhMauSac.setDuongDanAnh(dto.getDuongDanAnh());
+            hinhAnhMauSac.setMauSac(dto.getMauSac().trim());
+            hinhAnhMauSac.setDuongDanAnh(dto.getDuongDanAnh().trim());
             hinhAnhMauSac.setNgayTao(Instant.now());
 
             // hinhAnhMauSac = hinhAnhMauSacRepository.save(hinhAnhMauSac);

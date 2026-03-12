@@ -1,0 +1,6 @@
+BAD|113|C:\Users\haiba\OneDrive\Desktop\HanCosStore\src\main\resources\templates\editsanpham.html
+BAD|97|C:\Users\haiba\OneDrive\Desktop\HanCosStore\src\main\resources\templates\product-detail.html
+BAD|33|C:\Users\haiba\OneDrive\Desktop\HanCosStore\src\main\resources\templates\admin\product-detail.html
+BAD|21|C:\Users\haiba\OneDrive\Desktop\HanCosStore\src\main\resources\static\js\admin\products.js
+BAD|18|C:\Users\haiba\OneDrive\Desktop\HanCosStore\src\main\resources\templates\admin\products.html
+BAD_COUNT=5

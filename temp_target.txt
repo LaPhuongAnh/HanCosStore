@@ -1,0 +1,52 @@
+﻿ 269: 
+ 270:         <!-- PAGINATION -->
+ 271:      <nav th:if="${productPage != null and productPage.totalPages > 1}"
+ 272:      class="home-pagination-wrap d-flex justify-content-center mt-5">
+ 273: 
+ 274:     <ul class="pagination" style="gap:6px;">
+ 275: 
+ 276:         <!-- Previous -->
+ 277:         <li class="page-item" th:classappend="${productPage.first ? 'disabled' : ''}">
+ 278:             <a class="page-link"
+ 279:                th:href="${productPage.first} ? '#' :
+ 280:                @{/(page=${currentPage - 1}, danhMucId=${selectedDanhMucId}, q=${query})}">
+ 281:                 &laquo;
+ 282:             </a>
+ 283:         </li>
+ 284: 
+ 285:         <!-- Page numbers -->
+ 286:         <th:block th:each="i : ${#numbers.sequence(0, productPage.totalPages - 1)}">
+ 287:             <li class="page-item"
+ 288:                 th:classappend="${i == currentPage ? 'active' : ''}">
+ 289:                 <a class="page-link"
+ 290:                    th:href="@{/(page=${i}, danhMucId=${selectedDanhMucId}, q=${query})}"
+ 291:                    th:text="${i + 1}">
+ 292:                 </a>
+ 293:             </li>
+ 294:         </th:block>
+ 295: 
+ 296:         <!-- Next -->
+ 297:         <li class="page-item" th:classappend="${productPage.last ? 'disabled' : ''}">
+ 298:             <a class="page-link"
+ 299:                th:href="${productPage.last} ? '#' :
+ 300:                @{/(page=${currentPage + 1}, danhMucId=${selectedDanhMucId}, q=${query})}">
+ 301:                 &raquo;
+ 302:             </a>
+ 303:         </li>
+ 304: 
+ 305:     </ul>
+ 306: </nav>
+ 307:     </section>
+ 308: 
+ 309:     <!-- CHATBOT WIDGET -->
+ 310:     <div id="chatbot-widget" class="chatbot-widget">
+ 311:         <button id="chatbotToggle" class="chatbot-toggle" aria-label="Mở chatbot">
+ 312:             <i class="fas fa-robot"></i>
+ 313:         </button>
+ 314:         <div id="chatbotPanel" class="chatbot-panel" role="dialog" aria-label="Chatbot Hancos">
+ 315:             <div class="chatbot-header">
+ 316:                 <span>Hancos AI</span>
+ 317:                 <small>Gemini</small>
+ 318:             </div>
+ 319:             <div id="chatbotMessages" class="chatbot-messages"></div>
+ 320:             <div class="chatbot-chips">

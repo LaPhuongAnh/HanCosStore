@@ -13,103 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/hancos-home.css}">
-    <style>
-        .product-detail-container { padding: 4rem 0; }
-        .main-img-container { 
-            position: relative; 
-            background: #f8f9fa; 
-            overflow: hidden; 
-            margin-bottom: 1rem; 
-            aspect-ratio: 3/4; 
-            border: 1px solid #eee;
-        }
-        .main-img-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-        .thumb-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-        .thumb-item { aspect-ratio: 1; overflow: hidden; cursor: pointer; border: 1px solid #eee; transition: all 0.2s; }
-        .thumb-item.active { border-color: #8b4d4d; border-width: 2px; }
-        .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
-
-        .product-info-col { padding-left: 3rem; }
-        .p-category { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.75rem; font-weight: 600; }
-        .p-name { font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: #1a1a1a; letter-spacing: -0.02em; }
-        .p-price { font-size: 1.75rem; font-weight: 700; color: #8b4d4d; margin-bottom: 2rem; }
-        .p-price .old-price { font-size: 1.25rem; color: #999; text-decoration: line-through; margin-left: 15px; font-weight: 400; }
-
-        .option-label { font-weight: 700; margin-bottom: 1rem; display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #1a1a1a; }
-        .color-options, .size-options { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 2rem; }
-
-        .color-opt { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .color-opt.active { transform: scale(1.2); box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a1a1a; }
-        .color-opt.disabled { opacity: 0.3; cursor: not-allowed; }
-
-        .size-opt { 
-            padding: 10px 20px; 
-            border: 1px solid #ddd; 
-            cursor: pointer; 
-            font-size: 0.85rem; 
-            font-weight: 600;
-            transition: all 0.2s; 
-            min-width: 60px; 
-            text-align: center; 
-            background: #fff;
-        }
-        .size-opt:hover:not(.disabled) { border-color: #1a1a1a; }
-        .size-opt.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
-        .size-opt.disabled { color: #ccc; border-color: #f5f5f5; background: #f9f9f9; cursor: not-allowed; text-decoration: line-through; }
-
-        .quantity-selector { display: flex; align-items: center; border: 1px solid #ddd; width: fit-content; margin-bottom: 2.5rem; }
-        .qty-btn { width: 45px; height: 45px; cursor: pointer; background: none; border: none; font-size: 1.2rem; transition: background 0.2s; }
-        .qty-btn:hover { background: #f8f9fa; }
-        .qty-input { width: 60px; height: 45px; text-align: center; border: none; border-left: 1px solid #ddd; border-right: 1px solid #ddd; font-weight: 700; font-size: 1rem; }
-
-        .add-to-cart-btn { 
-            background: #1a1a1a; 
-            color: #fff; 
-            border: none; 
-            padding: 15px 40px; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 0.1em; 
-            width: 100%; 
-            transition: all 0.3s; 
-            font-size: 0.9rem;
-        }
-        .add-to-cart-btn:hover:not(:disabled) { background: #8b4d4d; }
-        .add-to-cart-btn:disabled { background: #ccc; cursor: not-allowed; }
-
-        .product-meta { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid #eee; font-size: 0.85rem; color: #666; }
-        .product-meta p { margin-bottom: 0.75rem; }
-        .product-meta strong { color: #1a1a1a; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; margin-right: 10px; }
-
-        .description-section { margin-top: 5rem; }
-        .nav-tabs { border-bottom: 1px solid #eee; gap: 2rem; }
-        .nav-tabs .nav-link { 
-            border: none; 
-            color: #888; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            padding: 1rem 0; 
-            position: relative; 
-            font-size: 0.85rem;
-            letter-spacing: 0.1em;
-            background: none;
-        }
-        .nav-tabs .nav-link.active { color: #1a1a1a; }
-        .nav-tabs .nav-link.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: #1a1a1a; }
-        .tab-content { padding: 3rem 0; line-height: 1.8; color: #444; font-size: 1rem; }
-
-        .breadcrumb { background: none; padding: 0; margin-bottom: 2rem; }
-        .breadcrumb-item { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
-        .breadcrumb-item a { color: #888; text-decoration: none; transition: color 0.2s; }
-        .breadcrumb-item a:hover { color: #1a1a1a; }
-        .breadcrumb-item.active { color: #1a1a1a; font-weight: 700; }
-        .breadcrumb-item + .breadcrumb-item::before { content: "/"; color: #ddd; }
-
-        @media (max-width: 991.98px) {
-            .product-info-col { padding-left: 0; margin-top: 3rem; }
-            .p-name { font-size: 2rem; }
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/product-detail.css}">
 </head>
 <body>
 
@@ -220,21 +124,21 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
                     <!-- Danh mục cha -->
-                    <li class="breadcrumb-item" th:if="${p.danhMuc != null and p.danhMuc.danhMucCha != null}">
-                        <a th:href="@{/(danhMucId=${p.danhMuc.danhMucCha.id})}" th:text="${p.danhMuc.danhMucCha.ten}">Danh mục cha</a>
+                    <li class="breadcrumb-item" th:if="${p.danhMucChaId != null}">
+                        <a th:href="@{/(danhMucId=${p.danhMucChaId})}" th:text="${p.danhMucChaTen}">Danh mục cha</a>
                     </li>
                     <!-- Danh mục hiện tại (có thể là cha hoặc con) -->
-                    <li class="breadcrumb-item" th:if="${p.danhMuc != null}">
-                        <a th:href="@{/(danhMucId=${p.danhMuc.id})}" th:text="${p.danhMuc.ten}">Danh mục</a>
+                    <li class="breadcrumb-item" th:if="${p.danhMucId != null}">
+                        <a th:href="@{/(danhMucId=${p.danhMucId})}" th:text="${p.danhMucTen}">Danh mục</a>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page" th:text="${p.ten}">Sản phẩm</li>
                 </ol>
             </nav>
 
             <div class="p-category">
-                <span th:if="${p.danhMuc != null and p.danhMuc.danhMucCha != null}" 
-                      th:text="${p.danhMuc.danhMucCha.ten} + ' / '"></span>
-                <span th:text="${p.danhMuc != null ? p.danhMuc.ten : 'Sản phẩm'}">DANH MỤC</span>
+                <span th:if="${p.danhMucChaTen != null}" 
+                      th:text="${p.danhMucChaTen} + ' / '"></span>
+                <span th:text="${p.danhMucTen != null ? p.danhMucTen : 'Sản phẩm'}">DANH MỤC</span>
             </div>
             <h1 class="p-name" th:text="${p.ten}">Tên sản phẩm</h1>
 
@@ -527,16 +431,34 @@ function updateQty(delta) {
 
     // Tự động map background color cho các nút màu
     document.addEventListener('DOMContentLoaded', () => {
-        const colorMap = {
-            'Đen': '#000000', 'Trắng': '#ffffff', 'Xám': '#808080',
-            'Đỏ': '#ff0000', 'Xanh': '#0000ff', 'Vàng': '#ffff00',
-            'Nâu': '#8b4513', 'Hồng': '#ffc0cb', 'Kem': '#fffdd0',
-            'Be': '#f5f5dc', 'Navy': '#000080'
+        const normalizeColorKey = (value) => (value || '')
+            .toString()
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
 
+        const colorMap = {
+            den: '#000000',
+            trang: '#ffffff',
+            xam: '#808080',
+            do: '#ff0000',
+            xanh: '#0000ff',
+            'xanh la': '#5f7f66',
+            'xanh lam': '#0000ff',
+            'xanh duong': '#0000ff',
+            vang: '#ffff00',
+            nau: '#8b4513',
+            hong: '#ffc0cb',
+            kem: '#fffdd0',
+            be: '#f5f5dc',
+            navy: '#000080'
         };
+
         document.querySelectorAll('.color-opt').forEach(opt => {
-            const c = opt.dataset.color;
-            opt.style.backgroundColor = colorMap[c] || c;
+            const raw = opt.dataset.color || '';
+            const key = normalizeColorKey(raw);
+            opt.style.backgroundColor = colorMap[key] || raw;
         });
 
         // Nếu chỉ có 1 màu, tự chọn luôn
@@ -549,5 +471,6 @@ function updateQty(delta) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
+
 
 

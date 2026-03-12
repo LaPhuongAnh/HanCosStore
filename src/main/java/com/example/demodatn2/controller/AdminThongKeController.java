@@ -31,6 +31,14 @@ public class AdminThongKeController {
     @GetMapping
     public String index(Model model) {
         model.addAttribute("stats", thongKeService.getDoanhThuTongHop());
+
+        LocalDate today = LocalDate.now();
+        Instant tu = today.minusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Instant den = today.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+        Map<String, Object> tongHop = thongKeService.getDoanhThuTrongKhoang(tu, den);
+        model.addAttribute("doanhThuThucTe", tongHop.get("doanhThuThucTe"));
+        model.addAttribute("soDonTrongKy", tongHop.get("soDon"));
+
         return "admin/thong-ke";
     }
 

@@ -12,86 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/hancos-home.css}">
-    <style>
-        .profile-container {
-            max-width: 800px;
-            margin: 60px auto;
-            padding: 50px;
-            background: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            border: 1px solid #eee;
-        }
-        .profile-header {
-            border-bottom: 1px solid #eee;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            text-align: center;
-        }
-        .profile-header h2 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #1a1a1a;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 0;
-        }
-        .form-group {
-            margin-bottom: 25px;
-        }
-        label {
-            font-weight: 700;
-            color: #888;
-            font-size: 11px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            display: block;
-            letter-spacing: 1px;
-        }
-        .form-control {
-            border-radius: 0;
-            padding: 15px;
-            border: 1px solid #ddd;
-            font-size: 15px;
-            transition: all 0.3s;
-        }
-        .form-control:focus {
-            border-color: #1a1a1a;
-            box-shadow: none;
-        }
-        .btn-action {
-            padding: 12px 30px;
-            text-transform: uppercase;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0;
-        }
-        .btn-save {
-            background: #1a1a1a;
-            color: white;
-            border: none;
-        }
-        .btn-save:hover {
-            background: #8b4d4d;
-            color: white;
-            transform: translateY(-2px);
-        }
-        .btn-cancel {
-            background: white;
-            color: #1a1a1a;
-            border: 1px solid #ddd;
-        }
-        .btn-cancel:hover {
-            background: #f8f9fa;
-            border-color: #1a1a1a;
-            transform: translateY(-2px);
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/profile-edit.css}">
 </head>
 <body>
 
@@ -216,6 +137,96 @@
                 </a>
             </div>
         </form>
+
+        <!-- ĐỊa chỉ giao hàng -->
+        <div style="border-top:1px solid #eee; margin-top:40px; padding-top:30px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <label style="margin:0;">Địa chỉ giao hàng</label>
+                <button class="btn btn-dark btn-sm" style="border-radius:0; font-size:11px; letter-spacing:1px; text-transform:uppercase; font-weight:700; padding:8px 20px;" onclick="openAddressModal()">
+                    <i class="fas fa-plus me-1"></i> Thêm địa chỉ
+                </button>
+            </div>
+            <div id="addressList">
+                <div th:if="${#lists.isEmpty(addresses)}" class="text-muted text-center py-4" style="font-size:14px;">Chưa có địa chỉ nào</div>
+                <div th:each="addr : ${addresses}" class="addr-card mb-3 p-3" style="background:#f8f9fa; border:1px solid #eee; border-radius:0; font-size:14px; position:relative;">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <strong th:text="${addr.hoTenNhan}">Tên</strong>
+                        <span class="text-muted">|</span>
+                        <span th:text="${addr.soDienThoaiNhan}">SĐT</span>
+                        <span th:if="${addr.laMacDinh}" class="badge bg-dark" style="font-size:10px;">Mặc định</span>
+                    </div>
+                    <div class="text-muted" style="font-size:13px;" th:text="${addr.diaChiChiTiet + ', ' + addr.phuongXa + ', ' + addr.quanHuyen + ', ' + addr.tinhThanh}">-</div>
+                    <div class="mt-2 d-flex gap-3">
+                        <a href="#" class="text-decoration-none d-flex align-items-center gap-1" style="font-size:12px; color:#8b4d4d; font-weight:600;"
+                           th:data-id="${addr.id}" th:data-hoten="${addr.hoTenNhan}" th:data-sdt="${addr.soDienThoaiNhan}"
+                           th:data-tinh="${addr.tinhThanh}" th:data-huyen="${addr.quanHuyen}" th:data-xa="${addr.phuongXa}"
+                           th:data-chitiet="${addr.diaChiChiTiet}" th:data-macdinh="${addr.laMacDinh}"
+                           onclick="editAddressFromEl(this)">
+                            <i class="fas fa-pencil-alt" style="font-size:11px;"></i> Sửa</a>
+                        <a href="#" class="text-decoration-none d-flex align-items-center gap-1" style="font-size:12px; color:#999;"
+                           th:data-id="${addr.id}" onclick="deleteAddress(this.dataset.id)">
+                            <i class="fas fa-trash-alt" style="font-size:11px;"></i> Xóa</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Address Modal -->
+<div class="modal fade" id="addressModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius:0; border:none;">
+            <div class="modal-header" style="background:#1a1a1a; color:#fff; border:none; padding:15px 25px;">
+                <h6 class="modal-title fw-bold text-uppercase" style="letter-spacing:1px; font-size:13px;" id="addressModalTitle">Thêm địa chỉ</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="addrId">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label" style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#888;">Họ tên người nhận *</label>
+                        <input type="text" id="addrHoTen" class="form-control" style="border-radius:0;" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label" style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#888;">SĐT người nhận *</label>
+                        <input type="text" id="addrSDT" class="form-control" style="border-radius:0;" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label" style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#888;">Tỉnh/Thành *</label>
+                        <select id="addrProvince" class="form-select" style="border-radius:0;">
+                            <option value="">Chọn</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label" style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#888;">Quận/Huyện *</label>
+                        <select id="addrDistrict" class="form-select" style="border-radius:0;" disabled>
+                            <option value="">Chọn</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label" style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#888;">Phường/Xã *</label>
+                        <select id="addrWard" class="form-select" style="border-radius:0;" disabled>
+                            <option value="">Chọn</option>
+                        </select>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label" style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#888;">Địa chỉ chi tiết *</label>
+                        <input type="text" id="addrDetail" class="form-control" style="border-radius:0;" placeholder="Số nhà, tên đường...">
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="addrDefault">
+                            <label class="form-check-label" for="addrDefault" style="font-size:13px; text-transform:none; letter-spacing:0; color:#333; font-weight:500;">Đặt làm địa chỉ mặc định</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border:none; padding:10px 25px 20px;">
+                <button type="button" class="btn-action btn-cancel" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn-action btn-save" onclick="saveAddress()">Lưu địa chỉ</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -259,5 +270,6 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/profile-edit.js}"></script>
 </body>
 </html>

@@ -72,4 +72,23 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
            "AND (LOWER(sp.ten) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(sp.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<SanPham> searchActive(@Param("keyword") String keyword);
+
+    // === Paginated versions ===
+    @EntityGraph(attributePaths = {"hinhAnhSanPhams"})
+    @Query("SELECT sp FROM SanPham sp WHERE sp.trangThai='ACTIVE' AND (sp.daXoa=false OR sp.daXoa IS NULL)")
+    Page<SanPham> findActiveForListingPage(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"hinhAnhSanPhams"})
+    @Query("SELECT sp FROM SanPham sp WHERE sp.trangThai='ACTIVE' AND (sp.daXoa=false OR sp.daXoa IS NULL) AND sp.danhMuc.id = :danhMucId")
+    Page<SanPham> findActiveByDanhMucIdPage(@Param("danhMucId") Integer danhMucId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"hinhAnhSanPhams"})
+    @Query("SELECT sp FROM SanPham sp WHERE sp.trangThai='ACTIVE' AND (sp.daXoa=false OR sp.daXoa IS NULL) AND sp.danhMuc.id IN :danhMucIds")
+    Page<SanPham> findActiveByDanhMucIdsPage(@Param("danhMucIds") List<Integer> danhMucIds, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"hinhAnhSanPhams"})
+    @Query("SELECT sp FROM SanPham sp WHERE sp.trangThai='ACTIVE' AND (sp.daXoa=false OR sp.daXoa IS NULL) " +
+           "AND (LOWER(sp.ten) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(sp.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<SanPham> searchActivePage(@Param("keyword") String keyword, Pageable pageable);
 }

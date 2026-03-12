@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+// Service xử lý đăng ký, đăng nhập và quản lý session đăng nhập.
 public class AuthService {
 
     private final TaiKhoanRepository taiKhoanRepository;

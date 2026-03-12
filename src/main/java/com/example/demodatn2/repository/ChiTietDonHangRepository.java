@@ -9,6 +9,6 @@ import java.util.List;
 public interface ChiTietDonHangRepository extends JpaRepository<ChiTietDonHang, Integer> {
     List<ChiTietDonHang> findByDonHang(DonHang donHang);
 
-    @Query("SELECT SUM(c.soLuong) FROM ChiTietDonHang c WHERE c.donHang.trangThai = 'DELIVERED'")
+    @Query("SELECT SUM(c.soLuong) FROM ChiTietDonHang c WHERE c.donHang.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED')")
     Long sumSoLuongDaBan();
 }

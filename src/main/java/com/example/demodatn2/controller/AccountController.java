@@ -1,18 +1,21 @@
 package com.example.demodatn2.controller;
 
 import com.example.demodatn2.dto.TaiKhoanDTO;
+import com.example.demodatn2.entity.DiaChiGiaoHang;
 import com.example.demodatn2.entity.TaiKhoan;
+import com.example.demodatn2.repository.DiaChiGiaoHangRepository;
 import com.example.demodatn2.repository.TaiKhoanRepository;
 import com.example.demodatn2.service.DanhMucService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/account")
@@ -20,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AccountController {
 
     private final TaiKhoanRepository taiKhoanRepository;
+    private final DiaChiGiaoHangRepository diaChiGiaoHangRepository;
     private final DanhMucService danhMucService;
 
     @GetMapping("/profile")
@@ -42,6 +46,7 @@ public class AccountController {
                 .build();
 
         model.addAttribute("user", dto);
+        model.addAttribute("addresses", diaChiGiaoHangRepository.findByTaiKhoanIdOrderByLaMacDinhDescNgayTaoDesc(loginUser.getId()));
         model.addAttribute("categories", danhMucService.getActive());
         
         return "profile";
@@ -58,6 +63,7 @@ public class AccountController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
 
         model.addAttribute("user", user);
+        model.addAttribute("addresses", diaChiGiaoHangRepository.findByTaiKhoanIdOrderByLaMacDinhDescNgayTaoDesc(loginUser.getId()));
         model.addAttribute("categories", danhMucService.getActive());
         return "profile-edit";
     }
@@ -90,5 +96,66 @@ public class AccountController {
 
         redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
         return "redirect:/account/profile";
+    }
+
+    // === Địa chỉ giao hàng CRUD (AJAX) ===
+
+    @PostMapping("/address/save")
+    @ResponseBody
+    public Map<String, Object> saveAddress(@RequestParam(required = false) Integer id,
+                                           @RequestParam String hoTenNhan,
+                                           @RequestParam String soDienThoaiNhan,
+                                           @RequestParam String tinhThanh,
+                                           @RequestParam String quanHuyen,
+                                           @RequestParam String phuongXa,
+                                           @RequestParam String diaChiChiTiet,
+                                           @RequestParam(defaultValue = "false") Boolean laMacDinh,
+                                           HttpSession session) {
+        TaiKhoanDTO loginUser = (TaiKhoanDTO) session.getAttribute("LOGIN_USER");
+        if (loginUser == null) return Map.of("success", false, "message", "Chưa đăng nhập");
+
+        TaiKhoan tk = taiKhoanRepository.findById(loginUser.getId()).orElse(null);
+        if (tk == null) return Map.of("success", false, "message", "Không tìm thấy tài khoản");
+
+        DiaChiGiaoHang addr;
+        if (id != null) {
+            addr = diaChiGiaoHangRepository.findById(id).orElse(null);
+            if (addr == null || !addr.getTaiKhoan().getId().equals(loginUser.getId()))
+                return Map.of("success", false, "message", "Không tìm thấy địa chỉ");
+        } else {
+            addr = new DiaChiGiaoHang();
+            addr.setTaiKhoan(tk);
+            addr.setNgayTao(Instant.now());
+        }
+
+        addr.setHoTenNhan(hoTenNhan);
+        addr.setSoDienThoaiNhan(soDienThoaiNhan);
+        addr.setTinhThanh(tinhThanh);
+        addr.setQuanHuyen(quanHuyen);
+        addr.setPhuongXa(phuongXa);
+        addr.setDiaChiChiTiet(diaChiChiTiet);
+        addr.setLaMacDinh(laMacDinh);
+
+        if (Boolean.TRUE.equals(laMacDinh)) {
+            List<DiaChiGiaoHang> all = diaChiGiaoHangRepository.findByTaiKhoanIdOrderByLaMacDinhDescNgayTaoDesc(loginUser.getId());
+            all.forEach(a -> { if (Boolean.TRUE.equals(a.getLaMacDinh())) { a.setLaMacDinh(false); diaChiGiaoHangRepository.save(a); } });
+        }
+
+        diaChiGiaoHangRepository.save(addr);
+        return Map.of("success", true);
+    }
+
+    @PostMapping("/address/delete")
+    @ResponseBody
+    public Map<String, Object> deleteAddress(@RequestParam Integer id, HttpSession session) {
+        TaiKhoanDTO loginUser = (TaiKhoanDTO) session.getAttribute("LOGIN_USER");
+        if (loginUser == null) return Map.of("success", false, "message", "Chưa đăng nhập");
+
+        DiaChiGiaoHang addr = diaChiGiaoHangRepository.findById(id).orElse(null);
+        if (addr == null || !addr.getTaiKhoan().getId().equals(loginUser.getId()))
+            return Map.of("success", false, "message", "Không tìm thấy địa chỉ");
+
+        diaChiGiaoHangRepository.delete(addr);
+        return Map.of("success", true);
     }
 }

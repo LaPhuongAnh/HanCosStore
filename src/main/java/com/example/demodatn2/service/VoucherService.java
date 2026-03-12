@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+// Service quản lý voucher: chuẩn hóa dữ liệu, kiểm tra hợp lệ và tính tiền giảm.
 public class VoucherService {
 
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
@@ -39,11 +40,20 @@ public class VoucherService {
 
     @Transactional
     public void delete(Integer id) {
-        voucherRepository.deleteById(id);
+        MaGiamGia voucher = voucherRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Voucher không tồn tại: " + id));
+        voucher.setTrangThai("INACTIVE");
+        voucherRepository.save(voucher);
     }
 
     public List<MaGiamGia> getAvailableVouchers() {
         return voucherRepository.findAvailableVouchers();
+    }
+
+    public List<MaGiamGia> getEligibleVouchers(BigDecimal orderAmount) {
+        return voucherRepository.findAvailableVouchers().stream()
+                .filter(v -> v.getDonToiThieu() == null || orderAmount.compareTo(v.getDonToiThieu()) >= 0)
+                .toList();
     }
 
     public Optional<MaGiamGia> validateVoucher(String code, BigDecimal orderAmount) {
@@ -130,39 +140,75 @@ public class VoucherService {
     }
 
     private void validateVoucherData(MaGiamGia voucher) {
+        // 1. Mã voucher
         if (voucher.getMa() == null || voucher.getMa().isEmpty()) {
-            throw new IllegalArgumentException("Ma voucher khong duoc de trong.");
+            throw new IllegalArgumentException("Mã voucher không được để trống.");
         }
+        if (voucher.getMa().length() < 5 || voucher.getMa().length() > 20) {
+            throw new IllegalArgumentException("Mã voucher phải có độ dài từ 5 đến 20 ký tự.");
+        }
+        if (!voucher.getMa().matches("^[A-Za-z0-9]+$")) {
+            throw new IllegalArgumentException("Mã voucher không được chứa khoảng trắng hoặc ký tự đặc biệt.");
+        }
+        // Kiểm tra trùng mã
+        Optional<MaGiamGia> existing = voucherRepository.findByMa(voucher.getMa());
+        if (existing.isPresent() && !existing.get().getId().equals(voucher.getId())) {
+            throw new IllegalArgumentException("Mã voucher đã tồn tại trong hệ thống.");
+        }
+
+        // Loại voucher
         if (voucher.getLoai() == null || (!"PERCENT".equals(voucher.getLoai()) && !"FIXED".equals(voucher.getLoai()))) {
-            throw new IllegalArgumentException("Loai voucher phai la PERCENT hoac FIXED.");
+            throw new IllegalArgumentException("Loại voucher phải là PERCENT hoặc FIXED.");
         }
+
+        // 3. Giá trị giảm
         if (voucher.getGiaTri() == null || voucher.getGiaTri().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Gia tri giam phai lon hon 0.");
+            throw new IllegalArgumentException("Giá trị giảm phải lớn hơn 0.");
         }
-        if ("PERCENT".equals(voucher.getLoai()) && voucher.getGiaTri().compareTo(ONE_HUNDRED) > 0) {
-            throw new IllegalArgumentException("Voucher phan tram khong duoc vuot qua 100%.");
+        if ("PERCENT".equals(voucher.getLoai())) {
+            if (voucher.getGiaTri().compareTo(ONE_HUNDRED) > 0) {
+                throw new IllegalArgumentException("Voucher phần trăm không được vượt quá 100%.");
+            }
+            if (voucher.getGiaTriToiDa() == null || voucher.getGiaTriToiDa().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Voucher giảm theo phần trăm phải có giá trị giảm tối đa lớn hơn 0.");
+            }
         }
         if (voucher.getGiaTriToiDa() != null && voucher.getGiaTriToiDa().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Gia tri giam toi da khong hop le.");
+            throw new IllegalArgumentException("Giá trị giảm tối đa không hợp lệ.");
         }
-        if (voucher.getDonToiThieu() != null && voucher.getDonToiThieu().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Don toi thieu khong hop le.");
+
+        // 4. Đơn tối thiểu — bắt buộc
+        if (voucher.getDonToiThieu() == null || voucher.getDonToiThieu().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Đơn tối thiểu phải lớn hơn 0.");
+        }
+
+        // Giá trị giảm tối đa ≤ 30% đơn tối thiểu
+        if (voucher.getGiaTriToiDa() != null && voucher.getDonToiThieu() != null) {
+            BigDecimal maxAllowed = voucher.getDonToiThieu().multiply(new BigDecimal("0.3"));
+            if (voucher.getGiaTriToiDa().compareTo(maxAllowed) > 0) {
+                throw new IllegalArgumentException("Giá trị giảm tối đa không được vượt quá 30% đơn tối thiểu ("
+                        + maxAllowed.setScale(0, java.math.RoundingMode.DOWN).toPlainString() + "₫).");
+            }
+        }
+
+        // 5. Số lượng sử dụng — bắt buộc
+        if (voucher.getSoLuongToiDa() == null || voucher.getSoLuongToiDa() <= 0) {
+            throw new IllegalArgumentException("Số lượng mã phải lớn hơn 0.");
         }
         if (voucher.getSoLuongDaDung() != null && voucher.getSoLuongDaDung() < 0) {
-            throw new IllegalArgumentException("So luong da dung khong hop le.");
-        }
-        if (voucher.getSoLuongToiDa() != null && voucher.getSoLuongToiDa() < 0) {
-            throw new IllegalArgumentException("So luong toi da khong hop le.");
+            throw new IllegalArgumentException("Số lượng đã dùng không hợp lệ.");
         }
         if (voucher.getSoLuongToiDa() != null && voucher.getSoLuongDaDung() != null
                 && voucher.getSoLuongDaDung() > voucher.getSoLuongToiDa()) {
-            throw new IllegalArgumentException("So luong da dung khong duoc lon hon so luong toi da.");
+            throw new IllegalArgumentException("Số lượng đã dùng không được lớn hơn số lượng tối đa.");
         }
+
+        // 2. Thời gian áp dụng
         if (voucher.getBatDauLuc() == null || voucher.getKetThucLuc() == null) {
-            throw new IllegalArgumentException("Thoi gian bat dau/ket thuc khong duoc de trong.");
+            throw new IllegalArgumentException("Thời gian bắt đầu và kết thúc không được để trống.");
         }
         if (!voucher.getKetThucLuc().isAfter(voucher.getBatDauLuc())) {
-            throw new IllegalArgumentException("Thoi gian ket thuc phai sau thoi gian bat dau.");
+            throw new IllegalArgumentException("Thời gian kết thúc phải sau thời gian bắt đầu.");
         }
     }
 }

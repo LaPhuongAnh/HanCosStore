@@ -2,6 +2,8 @@ package com.example.demodatn2.repository;
 
 import com.example.demodatn2.entity.DanhMuc;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,4 +28,15 @@ public interface DanhMucRepository extends JpaRepository<DanhMuc, Integer> {
     // Lấy con theo MÃ cha
    Page<DanhMuc> findByDanhMucChaIsNull(Pageable pageable);
 
+    long countByDanhMucChaIsNull();
+    long countByDanhMucChaIsNotNull();
+    long countByTrangThai(String trangThai);
+
+    @Query("SELECT DISTINCT d FROM DanhMuc d LEFT JOIN d.danhMucCon c " +
+           "WHERE d.danhMucCha IS NULL AND " +
+           "(LOWER(d.ten) LIKE LOWER(CONCAT('%', :kw, '%')) " +
+           "OR LOWER(d.ma) LIKE LOWER(CONCAT('%', :kw, '%')) " +
+           "OR LOWER(c.ten) LIKE LOWER(CONCAT('%', :kw, '%')) " +
+           "OR LOWER(c.ma) LIKE LOWER(CONCAT('%', :kw, '%')))")
+    Page<DanhMuc> searchParents(@Param("kw") String keyword, Pageable pageable);
 }

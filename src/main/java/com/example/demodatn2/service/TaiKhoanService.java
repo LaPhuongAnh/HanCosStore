@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+// Service quản trị tài khoản: tìm kiếm, cập nhật role và xử lý xóa/khóa tài khoản.
 public class TaiKhoanService {
 
     private final TaiKhoanRepository taiKhoanRepository;

@@ -194,6 +194,13 @@
                     </div>
                 </div>
 
+                <div class="summary-row">
+                    <span class="text-muted">Phí vận chuyển</span>
+                    <span class="fw-600" id="shipping-value"
+                          th:if="${shippingFee == 0}" style="color: #198754;">Miễn phí</span>
+                    <span class="fw-600" id="shipping-value"
+                          th:if="${shippingFee != 0}" th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+                </div>
                 <div class="summary-row" id="discount-row" th:style="${discount != null and discount > 0 ? '' : 'display: none'}">
                     <span class="text-muted">Giảm giá</span>
                     <span class="text-danger fw-600" id="discount-value" th:text="${discount != null and discount > 0 ? '-' + #numbers.formatDecimal(discount, 0, 'COMMA', 0, 'POINT') + '₫' : '0₫'}">0₫</span>

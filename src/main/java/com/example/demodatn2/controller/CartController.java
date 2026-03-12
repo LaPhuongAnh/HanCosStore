@@ -1,6 +1,7 @@
 package com.example.demodatn2.controller;
 
 import com.example.demodatn2.dto.CartItemDTO;
+import com.example.demodatn2.dto.TaiKhoanDTO;
 import com.example.demodatn2.service.CartService;
 import com.example.demodatn2.service.DanhMucService;
 import com.example.demodatn2.service.VoucherService;
@@ -43,12 +44,15 @@ public class CartController {
             }
         }
         
+        BigDecimal shippingFee = CartService.calculateShippingFee(total);
+        
         model.addAttribute("items", items);
         model.addAttribute("total", total);
         model.addAttribute("discount", discount);
-        model.addAttribute("totalAfterDiscount", total.subtract(discount));
+        model.addAttribute("shippingFee", shippingFee);
+        model.addAttribute("totalAfterDiscount", total.subtract(discount).add(shippingFee));
         model.addAttribute("categories", danhMucService.getActive());
-        model.addAttribute("availableVouchers", voucherService.getAvailableVouchers());
+        model.addAttribute("availableVouchers", voucherService.getEligibleVouchers(total));
         return "cart";
     }
 
@@ -69,12 +73,14 @@ public class CartController {
                 BigDecimal discount = voucherService.calculateDiscount(voucher, total);
                 session.setAttribute("APPLIED_VOUCHER_CODE", voucher.getMa());
                 session.setAttribute("DISCOUNT_AMOUNT", discount);
+                BigDecimal shippingFee = CartService.calculateShippingFee(total);
                 
                 return Map.of(
                     "success", true,
                     "message", "Áp dụng mã giảm giá thành công",
                     "discount", discount,
-                    "totalAfterDiscount", total.subtract(discount)
+                    "shippingFee", shippingFee,
+                    "totalAfterDiscount", total.subtract(discount).add(shippingFee)
                 );
             } else {
                 return Map.of("success", false, "message", "Mã giảm giá không hợp lệ hoặc không đủ điều kiện");
@@ -90,6 +96,15 @@ public class CartController {
                                         @RequestParam Integer soLuong, 
                                         HttpSession session) {
         String sessionId = session.getId(); // Force session creation
+        TaiKhoanDTO loginUser = (TaiKhoanDTO) session.getAttribute("LOGIN_USER");
+        if (loginUser == null) {
+            return Map.of(
+                    "success", false,
+                    "requireLogin", true,
+                    "message", "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng",
+                    "loginUrl", "/login"
+            );
+        }
         try {
             cartService.addToCart(bienTheId, soLuong, session);
             int count = cartService.getItemCount(session);
@@ -131,7 +146,8 @@ public class CartController {
                 "success", true, 
                 "total", total,
                 "discount", discount,
-                "totalAfterDiscount", total.subtract(discount),
+                "shippingFee", CartService.calculateShippingFee(total),
+                "totalAfterDiscount", total.subtract(discount).add(CartService.calculateShippingFee(total)),
                 "count", count
             );
         } catch (Exception e) {
@@ -167,7 +183,8 @@ public class CartController {
                 "success", true, 
                 "total", total,
                 "discount", discount,
-                "totalAfterDiscount", total.subtract(discount),
+                "shippingFee", CartService.calculateShippingFee(total),
+                "totalAfterDiscount", total.subtract(discount).add(CartService.calculateShippingFee(total)),
                 "count", count
             );
         } catch (Exception e) {

@@ -20,18 +20,33 @@ public class AdminDanhMucController {
     @GetMapping
     public String listCategories(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "2") int size,
+            @RequestParam(required = false) String keyword,
             Model model) {
         int safePage = Math.max(page, 1);
         int safeSize = size <= 0 ? 10 : Math.min(size, 100);
 
-        Page<DanhMuc> categoryPage = danhMucService.findByDanhMucChaIsNull(safePage - 1, safeSize);
+        Page<DanhMuc> categoryPage;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            categoryPage = danhMucService.searchParents(keyword.trim(), safePage - 1, safeSize);
+        } else {
+            categoryPage = danhMucService.findByDanhMucChaIsNull(safePage - 1, safeSize);
+        }
         int totalPages = Math.max(categoryPage.getTotalPages(), 1);
 
         model.addAttribute("categories", categoryPage.getContent());
         model.addAttribute("currentPage", safePage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("pageSize", safeSize);
+        model.addAttribute("totalElements", categoryPage.getTotalElements());
+        model.addAttribute("keyword", keyword != null ? keyword : "");
+
+        // Stats
+        model.addAttribute("totalAll", danhMucService.countAll());
+        model.addAttribute("parentCount", danhMucService.countParents());
+        model.addAttribute("childCount", danhMucService.countChildren());
+        model.addAttribute("activeCount", danhMucService.countActive());
+
         return "admin/categories";
     }
 
