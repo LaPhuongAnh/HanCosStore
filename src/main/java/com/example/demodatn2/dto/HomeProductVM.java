@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,5 +24,18 @@ public class HomeProductVM {
     private String maDanhMuc;
     private Integer idDanhMuc;
     private DanhMuc danhMuc;
+    private List<BienTheNhanhVM> bienThes;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class BienTheNhanhVM {
+        private Integer id;
+        private String mauSac;
+        private String kichCo;
+        private Integer soLuongTon;
+        private String anhMauSac;
+    }
 
 }

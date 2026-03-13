@@ -90,6 +90,23 @@ public class CartController {
         }
     }
 
+    @GetMapping("/pending-add")
+    public String handlePendingAdd(HttpSession session) {
+        Integer bienTheId = (Integer) session.getAttribute("PENDING_BIEN_THE_ID");
+        Integer soLuong   = (Integer) session.getAttribute("PENDING_SO_LUONG");
+        TaiKhoanDTO loginUser = (TaiKhoanDTO) session.getAttribute("LOGIN_USER");
+        if (bienTheId != null && soLuong != null && loginUser != null) {
+            session.removeAttribute("PENDING_BIEN_THE_ID");
+            session.removeAttribute("PENDING_SO_LUONG");
+            try {
+                cartService.addToCart(bienTheId, soLuong, session);
+                int count = cartService.getItemCount(session);
+                session.setAttribute("CART_COUNT", count);
+            } catch (Exception ignored) {}
+        }
+        return "redirect:/cart";
+    }
+
     @PostMapping("/add")
     @ResponseBody
     public Map<String, Object> addToCart(@RequestParam Integer bienTheId, 
@@ -98,11 +115,13 @@ public class CartController {
         String sessionId = session.getId(); // Force session creation
         TaiKhoanDTO loginUser = (TaiKhoanDTO) session.getAttribute("LOGIN_USER");
         if (loginUser == null) {
+            session.setAttribute("PENDING_BIEN_THE_ID", bienTheId);
+            session.setAttribute("PENDING_SO_LUONG", soLuong);
             return Map.of(
                     "success", false,
                     "requireLogin", true,
                     "message", "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng",
-                    "loginUrl", "/login"
+                    "loginUrl", "/login?next=/cart/pending-add"
             );
         }
         try {

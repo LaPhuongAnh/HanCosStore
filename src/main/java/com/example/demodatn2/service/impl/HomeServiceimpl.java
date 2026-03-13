@@ -8,6 +8,7 @@ import com.example.demodatn2.entity.HinhAnhSanPham;
 import com.example.demodatn2.entity.SanPham;
 import com.example.demodatn2.repository.BienTheSanPhamRepository;
 import com.example.demodatn2.repository.DanhMucRepository;
+import com.example.demodatn2.repository.HinhAnhMauSacRepository;
 import com.example.demodatn2.repository.HinhAnhSanPhamRepository;
 import com.example.demodatn2.repository.SanPhamRepository;
 import com.example.demodatn2.service.HomeService;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 public class HomeServiceimpl implements HomeService {
     private final SanPhamRepository sanPhamRepository;
     private final HinhAnhSanPhamRepository hinhAnhSanPhamRepository;
+    private final HinhAnhMauSacRepository hinhAnhMauSacRepository;
     private final BienTheSanPhamRepository bienTheSanPhamRepository;
     private final DanhMucRepository danhMucRepository;
 
@@ -73,6 +76,23 @@ public class HomeServiceimpl implements HomeService {
            //mausac
            List<String> mauSac=bienTheSanPhamRepository.findDistinctMauSac(sp.getId());
            List<String> kichCos=bienTheSanPhamRepository.findDistinctKichCo(sp.getId());
+           Map<String, String> hinhAnhTheoMau = hinhAnhMauSacRepository.findBySanPham_Id(sp.getId()).stream()
+               .collect(Collectors.toMap(
+                   h -> normalizeColorKey(h.getMauSac()),
+                   HinhAnhMauSac::getDuongDanAnh,
+                   (existing, replacement) -> existing
+               ));
+           List<HomeProductVM.BienTheNhanhVM> bienThes = sp.getBienThes().stream()
+               .filter(bt -> bt.getTrangThai() == null || "ACTIVE".equalsIgnoreCase(bt.getTrangThai()))
+               .filter(bt -> bt.getSoLuongTon() != null && bt.getSoLuongTon() > 0)
+               .map(bt -> HomeProductVM.BienTheNhanhVM.builder()
+                   .id(bt.getId())
+                   .mauSac(bt.getMauSac())
+                   .kichCo(bt.getKichCo())
+                   .soLuongTon(bt.getSoLuongTon())
+               .anhMauSac(hinhAnhTheoMau.getOrDefault(normalizeColorKey(bt.getMauSac()), anhChinh))
+                   .build())
+               .collect(Collectors.toList());
            return HomeProductVM.builder()
                    .id(sp.getId())
                    .ten(sp.getTen())
@@ -84,6 +104,7 @@ public class HomeServiceimpl implements HomeService {
                    .maDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getMa() : null)
                    .idDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getId() : null)
                    .danhMuc(sp.getDanhMuc())
+               .bienThes(bienThes)
                    .build();
 
        }).toList();
@@ -127,6 +148,23 @@ public class HomeServiceimpl implements HomeService {
             BienTheSanPhamRepository.PriceRange range = bienTheSanPhamRepository.findPriceRange(sp.getId());
             List<String> mauSac = bienTheSanPhamRepository.findDistinctMauSac(sp.getId());
             List<String> kichCos = bienTheSanPhamRepository.findDistinctKichCo(sp.getId());
+            Map<String, String> hinhAnhTheoMau = hinhAnhMauSacRepository.findBySanPham_Id(sp.getId()).stream()
+                    .collect(Collectors.toMap(
+                            h -> normalizeColorKey(h.getMauSac()),
+                            HinhAnhMauSac::getDuongDanAnh,
+                            (existing, replacement) -> existing
+                    ));
+                List<HomeProductVM.BienTheNhanhVM> bienThes = sp.getBienThes().stream()
+                    .filter(bt -> bt.getTrangThai() == null || "ACTIVE".equalsIgnoreCase(bt.getTrangThai()))
+                    .filter(bt -> bt.getSoLuongTon() != null && bt.getSoLuongTon() > 0)
+                    .map(bt -> HomeProductVM.BienTheNhanhVM.builder()
+                        .id(bt.getId())
+                        .mauSac(bt.getMauSac())
+                        .kichCo(bt.getKichCo())
+                        .soLuongTon(bt.getSoLuongTon())
+                        .anhMauSac(hinhAnhTheoMau.getOrDefault(normalizeColorKey(bt.getMauSac()), anhChinh))
+                        .build())
+                    .collect(Collectors.toList());
             return HomeProductVM.builder()
                     .id(sp.getId())
                     .ten(sp.getTen())
@@ -138,6 +176,7 @@ public class HomeServiceimpl implements HomeService {
                     .maDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getMa() : null)
                     .idDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getId() : null)
                     .danhMuc(sp.getDanhMuc())
+                    .bienThes(bienThes)
                     .build();
         });
     }
@@ -210,6 +249,18 @@ public class HomeServiceimpl implements HomeService {
                 .hinhAnhTheoMau(hinhAnhTheoMau)
                 .bienThes(bienThes)
                 .build();
+    }
+
+    private String normalizeColorKey(String color) {
+        if (color == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(color, Normalizer.Form.NFD)
+            .replaceAll("\\p{M}+", "")
+            .trim()
+            .toLowerCase()
+            .replaceAll("\\s+", " ");
+        return normalized;
     }
 
 }

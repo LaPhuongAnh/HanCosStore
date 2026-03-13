@@ -439,26 +439,45 @@ function updateQty(delta) {
             .replace(/[\u0300-\u036f]/g, '');
 
         const colorMap = {
-            den: '#000000',
-            trang: '#ffffff',
-            xam: '#808080',
-            do: '#ff0000',
-            xanh: '#0000ff',
-            'xanh la': '#5f7f66',
-            'xanh lam': '#0000ff',
-            'xanh duong': '#0000ff',
-            vang: '#ffff00',
-            nau: '#8b4513',
-            hong: '#ffc0cb',
-            kem: '#fffdd0',
-            be: '#f5f5dc',
-            navy: '#000080'
+            den:           '#1a1a1a',
+            trang:         '#f5f5f5',
+            xam:           '#9e9e9e',
+            'xam tro':     '#9e9e9e',
+            be:            '#d9c9a8',
+            beige:         '#d9c9a8',
+            kem:           '#f0e6cc',
+            nau:           '#795548',
+            'nau dat':     '#795548',
+            navy:          '#1a237e',
+            'xanh navy':   '#1a237e',
+            'xanh lam':    '#1565c0',
+            'xanh duong':  '#1565c0',
+            xanh:          '#1a237e',
+            'xanh la':     '#2e7d32',
+            'xanh la cay': '#2e7d32',
+            teal:          '#00695c',
+            olive:         '#6d6c2e',
+            do:            '#c62828',
+            'do tuoi':     '#c62828',
+            hong:          '#e91e8c',
+            'hong pastel': '#f48fb1',
+            tim:           '#6a1b9a',
+            vang:          '#f9a825',
+            'vang dong':   '#f57f17',
+            cam:           '#e65100',
         };
+
+        // Màu sáng cần viền để nhìn thấy trên nền trắng
+        const lightColorKeys = new Set(['trang', 'kem', 'be', 'beige']);
 
         document.querySelectorAll('.color-opt').forEach(opt => {
             const raw = opt.dataset.color || '';
             const key = normalizeColorKey(raw);
-            opt.style.backgroundColor = colorMap[key] || raw;
+            const hex = colorMap[key] || raw;
+            opt.style.backgroundColor = hex;
+            if (lightColorKeys.has(key)) {
+                opt.style.boxShadow = 'inset 0 0 0 1.5px #aaa';
+            }
         });
 
         // Nếu chỉ có 1 màu, tự chọn luôn

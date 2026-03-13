@@ -162,6 +162,7 @@ public class CartService {
     }
 
     // Tổng số lượng sản phẩm (theo từng đơn vị) đang có trong giỏ
+    @Transactional(readOnly = true)
     public int getItemCount(HttpSession session) {
         GioHang gioHang = getOrCreateCart(session);
         return gioHang.getChiTiets().stream()

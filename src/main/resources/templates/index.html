@@ -220,37 +220,56 @@
     <section id="product-section" class="product-section container">
         <div class="product-grid" id="productGrid">
             <th:block th:each="p : ${products}">
-                <a class="product-card" th:href="@{/products/{id}(id=${p.id})}" th:attr="data-colors=${p.mauSacs != null ? #strings.listJoin(p.mauSacs, ',') : ''},
+                <div class="product-card" th:attr="data-colors=${p.mauSacs != null ? #strings.listJoin(p.mauSacs, ',') : ''},
                         data-sizes=${p.kichCos != null ? #strings.listJoin(p.kichCos, ',') : ''},
                         data-min-price=${p.giaMin != null ? p.giaMin : 0},
                         data-max-price=${p.giaMax != null ? p.giaMax : 0}">
-                    <div class="product-img-container">
+                    <a class="product-main-link" th:href="@{/products/{id}(id=${p.id})}">
+                        <div class="product-img-container">
 
-                        <img th:src="${p.anhChinh != null ? p.anhChinh : '/images/no-image.png'}" th:alt="${p.ten}"
-                            alt="product">
-                    </div>
-
-                    <div class="product-info">
-                        <div class="product-name" th:text="${p.ten}">Tên sản phẩm</div>
-
-                        <div class="product-price">
-                            <span th:if="${p.giaMin != null}"
-                                th:text="${#numbers.formatDecimal(p.giaMin,0,'COMMA',0,'POINT')} + '₫'">
-                                0₫
-                            </span>
-                            <span class="price-range"
-                                th:if="${p.giaMax != null and p.giaMin != null and p.giaMax.compareTo(p.giaMin) != 0}"
-                                th:text="'– ' + ${#numbers.formatDecimal(p.giaMax,0,'COMMA',0,'POINT')} + '₫'">
-                            </span>
+                            <img th:src="${p.anhChinh != null ? p.anhChinh : '/images/no-image.png'}" th:alt="${p.ten}"
+                                alt="product">
                         </div>
 
-                        <div class="color-swatches" th:if="${not #lists.isEmpty(p.mauSacs)}">
-                            <div class="color-swatch" th:each="mau : ${p.mauSacs}" th:title="${mau}"
-                                th:data-color-name="${mau}">
+                        <div class="product-info">
+                            <div class="product-name" th:text="${p.ten}">Tên sản phẩm</div>
+
+                            <div class="product-price">
+                                <span th:if="${p.giaMin != null}"
+                                    th:text="${#numbers.formatDecimal(p.giaMin,0,'COMMA',0,'POINT')} + '₫'">
+                                    0₫
+                                </span>
+                                <span class="price-range"
+                                    th:if="${p.giaMax != null and p.giaMin != null and p.giaMax.compareTo(p.giaMin) != 0}"
+                                    th:text="'– ' + ${#numbers.formatDecimal(p.giaMax,0,'COMMA',0,'POINT')} + '₫'">
+                                </span>
+                            </div>
+
+                            <div class="color-swatches" th:if="${not #lists.isEmpty(p.mauSacs)}">
+                                <div class="color-swatch" th:each="mau : ${p.mauSacs}" th:title="${mau}"
+                                    th:data-color-name="${mau}">
+                                </div>
                             </div>
                         </div>
+                    </a>
+
+                    <div class="product-actions" aria-label="Hành động sản phẩm">
+                        <button type="button" class="product-action-btn js-buy-now" th:attr="data-product-name=${p.ten}">
+                            <i class="fas fa-bolt"></i> Mua ngay
+                        </button>
+                        <a class="product-action-btn" th:href="@{/products/{id}(id=${p.id})}">
+                            <i class="fas fa-eye"></i> Chi tiết
+                        </a>
                     </div>
-                </a>
+
+                    <div class="product-variants d-none">
+                        <span class="variant-item" th:each="v : ${p.bienThes}" th:attr="data-variant-id=${v.id},
+                                data-color=${v.mauSac},
+                                data-size=${v.kichCo},
+                                data-stock=${v.soLuongTon},
+                                data-color-image=${v.anhMauSac}"></span>
+                    </div>
+                </div>
             </th:block>
 
             <div class="empty-state" th:if="${#lists.isEmpty(products)}">
@@ -301,6 +320,62 @@
             </ul>
         </nav>
     </section>
+
+    <div class="modal fade" id="quickBuyModal" tabindex="-1" aria-labelledby="quickBuyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content quick-buy-modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="quickBuyModalLabel">Mua ngay</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="quick-buy-layout">
+                        <div class="quick-buy-media">
+                            <img id="quickBuyImage" src="/images/no-image.png" alt="Sản phẩm" />
+                        </div>
+                        <div class="quick-buy-details">
+                            <p class="quick-buy-product-name" id="quickBuyProductName">Sản phẩm</p>
+                            <p class="quick-buy-product-price" id="quickBuyProductPrice">0₫</p>
+
+                            <div class="quick-buy-field">
+                                <label for="quickBuyColor" class="form-label">Màu sắc<span id="quickBuyColorName" class="quick-buy-selected-color"></span></label>
+                                <div id="quickBuyColorOptions" class="quick-buy-color-options" role="radiogroup"
+                                    aria-label="Chọn màu sắc"></div>
+                                <select id="quickBuyColor" class="form-select d-none">
+                                    <option value="">Chọn màu</option>
+                                </select>
+                            </div>
+
+                            <div class="quick-buy-field">
+                                <label class="form-label">Kích cỡ<span id="quickBuySizeName" class="quick-buy-selected-color"></span></label>
+                                <div id="quickBuySizeOptions" class="quick-buy-size-options" role="radiogroup" aria-label="Chọn kích cỡ"></div>
+                                <input type="hidden" id="quickBuySize" value="" />
+                            </div>
+
+                            <div class="quick-buy-field">
+                                <label for="quickBuyQty" class="form-label">Số lượng</label>
+                                <div class="quick-buy-qty-stepper" role="group" aria-label="Điều chỉnh số lượng">
+                                    <button type="button" class="qty-btn" id="quickBuyQtyMinus" aria-label="Giảm số lượng">-</button>
+                                    <input id="quickBuyQty" type="number" min="1" value="1" class="form-control" />
+                                    <button type="button" class="qty-btn" id="quickBuyQtyPlus" aria-label="Tăng số lượng">+</button>
+                                </div>
+                                <small id="quickBuyStockText" class="text-muted d-block mt-2"></small>
+                            </div>
+
+                            <p id="quickBuyNoVariantHint" class="quick-buy-no-variant d-none">Sản phẩm này hiện chưa có biến thể khả dụng để mua nhanh.</p>
+                            <a id="quickBuyDetailLink" class="quick-buy-detail-link" href="#">Xem chi tiết sản phẩm</a>
+                        </div>
+                    </div>
+
+                    <div id="quickBuyAlert" class="alert alert-danger py-2 px-3 d-none" role="alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-dark" id="quickBuyConfirmBtn">Sở hữu ngay</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- CHATBOT WIDGET -->
     <div id="chatbot-widget" class="chatbot-widget">
