@@ -28,7 +28,21 @@ public class SanPhamController {
     @GetMapping("/them-san-pham")
     public String showAddProductPage(Model model) {
         model.addAttribute("parentDanhMuc", danhMucService.getParents());
+        model.addAttribute("parentDanhMucTree", danhMucService.getAllDTOs());
         return "addsanpham";
+    }
+
+    @PostMapping("/them-san-pham")
+    public String createProductFromForm(@ModelAttribute SanPhamRequestDTO requestDTO,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            sanPhamService.createSanPham(requestDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Tạo sản phẩm thành công.");
+            return "redirect:/them-san-pham";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/them-san-pham";
+        }
     }
 
     /**

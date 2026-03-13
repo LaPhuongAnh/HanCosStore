@@ -14,11 +14,6 @@ public class SanPhamRestController {
 
     private final SanPhamService sanPhamService;
 
-    @PostMapping
-    public ResponseEntity<SanPhamResponseDTO> createSanPham(@RequestBody SanPhamRequestDTO requestDTO) {
-        return ResponseEntity.ok(sanPhamService.createSanPham(requestDTO));
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<SanPhamResponseDTO> updateSanPham(@PathVariable Integer id, @RequestBody SanPhamRequestDTO requestDTO) {
         requestDTO.setId(id);

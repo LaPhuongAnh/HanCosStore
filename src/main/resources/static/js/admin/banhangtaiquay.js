@@ -1,18 +1,192 @@
 /* ══════════════════════════════════════════
    STATE
    ══════════════════════════════════════════ */
-let cart = [];
+let cart = Array.isArray(window.POS_INITIAL_CART) ? window.POS_INITIAL_CART : [];
 let selectedCustomer = null;
 let appliedVoucher = null;
 let paymentMethod = 'cash';
 let currentCategory = 'all';
 let customerMode = 'guest';
+let invoices = Array.isArray(window.POS_INVOICES) ? window.POS_INVOICES : [];
+let activeInvoiceId = window.POS_ACTIVE_INVOICE || '';
+const invoiceMetas = {};
 
 /* ══════════════════════════════════════════
    FORMAT
    ══════════════════════════════════════════ */
 function fmt(n) {
     return Number(n || 0).toLocaleString('vi-VN') + '₫';
+}
+
+async function requestPosCart(url, options, silent) {
+    try {
+        const res = await fetch(url, options);
+        const data = await res.json();
+        if (data.success) {
+            cart = Array.isArray(data.cart) ? data.cart : [];
+            renderCart();
+            recalc();
+            return data;
+        }
+        if (!silent) {
+            showToast(data.message || 'Không thể cập nhật giỏ hàng', 'error');
+        }
+        return data;
+    } catch (e) {
+        if (!silent) {
+            showToast('Lỗi kết nối giỏ hàng: ' + e.message, 'error');
+        }
+        return {success: false, message: e.message};
+    }
+}
+
+function syncPosCart(silent) {
+    return requestPosCart('/admin/pos/api/cart', {method: 'GET'}, !!silent);
+}
+
+function addPosCartItem(variantId, qty) {
+    return requestPosCart('/admin/pos/api/cart/items', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({variantId, qty})
+    }, false);
+}
+
+function updatePosCartItem(variantId, qty) {
+    return requestPosCart('/admin/pos/api/cart/items/' + variantId, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({qty})
+    }, false);
+}
+
+function removePosCartItem(variantId) {
+    return requestPosCart('/admin/pos/api/cart/items/' + variantId, {
+        method: 'DELETE'
+    }, false);
+}
+
+function clearPosCart(silent) {
+    return requestPosCart('/admin/pos/api/cart', {
+        method: 'DELETE'
+    }, !!silent);
+}
+
+/* ══════════════════════════════════════════
+   INVOICE TABS (multi-cart)
+   ══════════════════════════════════════════ */
+function renderInvoiceTabs() {
+    const bar = document.getElementById('invoiceBar');
+    if (!bar) return;
+    bar.innerHTML = invoices.map(inv => `
+        <div class="pos-invoice-tab${inv.active ? ' active' : ''}" onclick="activateInvoice('${inv.invoiceId}')">
+            <span class="pos-inv-label">${inv.label}</span>
+            ${inv.itemCount > 0 ? `<span class="pos-inv-badge">${inv.itemCount}</span>` : ''}
+            ${invoices.length > 1 ? `<button class="pos-inv-close" onclick="event.stopPropagation();removeInvoice('${inv.invoiceId}')" title="Đóng"><i class="fas fa-times"></i></button>` : ''}
+        </div>
+    `).join('') + `<button class="pos-invoice-add" onclick="addInvoice()" title="Thêm hóa đơn mới"><i class="fas fa-plus"></i></button>`;
+}
+
+function saveCurrentMeta() {
+    if (!activeInvoiceId) return;
+    invoiceMetas[activeInvoiceId] = {
+        customerMode,
+        selectedCustomer,
+        appliedVoucher,
+        paymentMethod,
+        custName: document.getElementById('custName').value,
+        custPhone: document.getElementById('custPhone').value,
+        note: document.getElementById('orderNote').value,
+        cashGiven: document.getElementById('cashGiven').value
+    };
+}
+
+function restoreMeta(invoiceId) {
+    const meta = invoiceMetas[invoiceId];
+    const mode = meta ? meta.customerMode : 'guest';
+    customerMode = mode;
+    document.querySelectorAll('.cust-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    document.getElementById('custPanelGuest').style.display = mode === 'guest' ? '' : 'none';
+    document.getElementById('custPanelExisting').style.display = mode === 'existing' ? '' : 'none';
+    document.getElementById('custPanelNew').style.display = mode === 'new' ? '' : 'none';
+
+    selectedCustomer = meta ? meta.selectedCustomer : null;
+    if (selectedCustomer) {
+        document.getElementById('custComboText').textContent = selectedCustomer.hoTen + ' — ' + (selectedCustomer.soDienThoai || '');
+        document.getElementById('custComboText').classList.add('has-value');
+        document.getElementById('custComboClear').style.display = '';
+    } else {
+        clearCustomer();
+    }
+
+    appliedVoucher = meta ? meta.appliedVoucher : null;
+    if (appliedVoucher) {
+        document.getElementById('voucherInputArea').style.display = 'none';
+        document.getElementById('voucherApplied').style.display = '';
+        document.getElementById('voucherLabel').textContent = appliedVoucher.code + ' (-' + fmt(appliedVoucher.discount) + ')';
+    } else {
+        document.getElementById('voucherInputArea').style.display = '';
+        document.getElementById('voucherApplied').style.display = 'none';
+        document.getElementById('voucherCode').value = '';
+    }
+
+    paymentMethod = meta ? (meta.paymentMethod || 'cash') : 'cash';
+    document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.toggle('active', b.dataset.method === paymentMethod));
+    document.getElementById('cashRow').style.display = paymentMethod === 'cash' ? '' : 'none';
+    document.getElementById('changeRow').style.display = 'none';
+    document.getElementById('transferRow').style.display = paymentMethod === 'cash' ? 'none' : '';
+    document.getElementById('custName').value = meta ? meta.custName || '' : '';
+    document.getElementById('custPhone').value = meta ? meta.custPhone || '' : '';
+    document.getElementById('orderNote').value = meta ? meta.note || '' : '';
+    document.getElementById('cashGiven').value = meta ? meta.cashGiven || '' : '';
+    document.getElementById('transferConfirm').checked = false;
+}
+
+async function addInvoice() {
+    saveCurrentMeta();
+    const res = await fetch('/admin/pos/api/invoices', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+        invoices = data.invoices;
+        activeInvoiceId = data.activeInvoiceId;
+        cart = Array.isArray(data.cart) ? data.cart : [];
+        renderInvoiceTabs();
+        restoreMeta(activeInvoiceId);
+        renderCart();
+        recalc();
+    }
+}
+
+async function activateInvoice(invoiceId) {
+    if (invoiceId === activeInvoiceId) return;
+    saveCurrentMeta();
+    const res = await fetch('/admin/pos/api/invoices/' + invoiceId + '/activate', { method: 'PUT' });
+    const data = await res.json();
+    if (data.success) {
+        invoices = data.invoices;
+        activeInvoiceId = data.activeInvoiceId;
+        cart = Array.isArray(data.cart) ? data.cart : [];
+        renderInvoiceTabs();
+        restoreMeta(activeInvoiceId);
+        renderCart();
+        recalc();
+    }
+}
+
+async function removeInvoice(invoiceId) {
+    const switching = invoiceId === activeInvoiceId;
+    delete invoiceMetas[invoiceId];
+    const res = await fetch('/admin/pos/api/invoices/' + invoiceId, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+        invoices = data.invoices;
+        activeInvoiceId = data.activeInvoiceId;
+        cart = Array.isArray(data.cart) ? data.cart : [];
+        renderInvoiceTabs();
+        if (switching) restoreMeta(activeInvoiceId);
+        renderCart();
+        recalc();
+    }
 }
 
 /* ══════════════════════════════════════════
@@ -196,7 +370,7 @@ function modalQtyInput(el) {
     el.value = val;
 }
 
-function addToCartFromModal() {
+async function addToCartFromModal() {
     if (!modalSelectedVariant) {
         showToast('Vui lòng chọn màu sắc và kích cỡ', 'error');
         return;
@@ -212,28 +386,12 @@ function addToCartFromModal() {
         return;
     }
 
-    const imgEl = modalCard.querySelector('.prod-img-wrap img');
-    const img = imgEl ? imgEl.src : null;
-
-    if (existingItem) {
-        existingItem.qty += qty;
-    } else {
-        cart.push({
-            key: variant.id,
-            variantId: variant.id,
-            productName: modalCard.querySelector('.prod-name').textContent,
-            color: variant.mauSac,
-            size: variant.kichCo,
-            price: variant.gia,
-            qty: qty,
-            stock: variant.soLuongTon,
-            img: img
-        });
+    const syncResult = await addPosCartItem(variant.id, qty);
+    if (!syncResult.success) {
+        return;
     }
 
     bootstrap.Modal.getInstance(document.getElementById('variantModal')).hide();
-    renderCart();
-    recalc();
     showToast('Đã thêm vào giỏ hàng', 'success');
 }
 
@@ -268,24 +426,22 @@ function renderCart() {
     `).join('');
 }
 
-function changeQty(idx, delta) {
+async function changeQty(idx, delta) {
     const item = cart[idx];
     if (!item) return;
     const newQty = item.qty + delta;
     if (newQty < 1) {
-        removeItem(idx);
+        await removeItem(idx);
         return;
     }
     if (newQty > item.stock) {
         showToast('Sản phẩm không đủ số lượng! Tồn kho: ' + item.stock, 'error');
         return;
     }
-    item.qty = newQty;
-    renderCart();
-    recalc();
+    await updatePosCartItem(item.variantId, newQty);
 }
 
-function changeQtyDirect(idx, value) {
+async function changeQtyDirect(idx, value) {
     const item = cart[idx];
     if (!item) return;
     let newQty = parseInt(value) || 1;
@@ -294,21 +450,17 @@ function changeQtyDirect(idx, value) {
         showToast('Sản phẩm không đủ số lượng! Tồn kho: ' + item.stock, 'error');
         newQty = item.stock;
     }
-    item.qty = newQty;
-    renderCart();
-    recalc();
+    await updatePosCartItem(item.variantId, newQty);
 }
 
-function removeItem(idx) {
-    cart.splice(idx, 1);
-    renderCart();
-    recalc();
+async function removeItem(idx) {
+    const item = cart[idx];
+    if (!item) return;
+    await removePosCartItem(item.variantId);
 }
 
-function clearCart() {
-    cart = [];
-    renderCart();
-    recalc();
+async function clearCart() {
+    await clearPosCart(false);
 }
 
 /* ══════════════════════════════════════════
@@ -598,12 +750,7 @@ async function checkout() {
         customerPhone: custPhone,
         paymentMethod: paymentMethod,
         voucherCode: appliedVoucher ? appliedVoucher.code : null,
-        note: document.getElementById('orderNote').value.trim() || null,
-        items: cart.map(i => ({
-            variantId: i.variantId,
-            qty: i.qty,
-            price: i.price
-        }))
+        note: document.getElementById('orderNote').value.trim() || null
     };
 
     document.getElementById('btnCheckout').disabled = true;
@@ -617,6 +764,8 @@ async function checkout() {
         });
         const data = await res.json();
         if (data.success) {
+            cart = [];
+            if (Array.isArray(data.invoices)) { invoices = data.invoices; renderInvoiceTabs(); }
             document.getElementById('successOrderCode').textContent = data.orderCode;
             document.getElementById('successTotal').textContent = fmt(data.total);
             document.getElementById('successOverlay').classList.add('show');
@@ -635,7 +784,9 @@ async function checkout() {
 /* ══════════════════════════════════════════
    NEW ORDER / RESET
    ══════════════════════════════════════════ */
-function newOrder() {
+async function newOrder() {
+    await clearPosCart(true);
+
     cart = [];
     selectedCustomer = null;
     appliedVoucher = null;
@@ -685,3 +836,11 @@ function showToast(msg, type) {
     container.appendChild(toast);
     setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
 }
+
+document.addEventListener('DOMContentLoaded', async function() {
+    renderInvoiceTabs();
+    renderCart();
+    recalc();
+    filterProducts();
+    await syncPosCart(true);
+});

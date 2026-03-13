@@ -23,7 +23,12 @@
 
     <div class="main-content">
         <header class="top-header">
-            <h4 class="fw-800 mb-0 text-uppercase letter-spacing-1">Quản lý đơn hàng</h4>
+            <h4 class="fw-800 mb-0 text-uppercase letter-spacing-1 d-flex align-items-center gap-2 flex-wrap">
+                <span>Quản lý đơn hàng</span>
+                    <span class="badge bg-danger rounded-pill"
+                        th:if="${orderStatusCounts['CHO_XAC_NHAN'] > 0}"
+                        th:text="${orderStatusCounts['CHO_XAC_NHAN']} + ' cần xác nhận'">0 cần xác nhận</span>
+            </h4>
             <div class="d-flex align-items-center gap-3">
                 <div class="rounded-circle bg-soft-primary d-flex align-items-center justify-content-center"
                     style="width: 45px; height: 45px;">
@@ -50,7 +55,12 @@
                             <a th:each="st : ${ {'ALL', 'CHO_XAC_NHAN', 'DA_XAC_NHAN', 'DANG_GIAO', 'HOAN_THANH', 'DA_HUY', 'TRA_HANG'} }"
                                 th:href="@{/admin/orders(status=${st}, keyword=${keyword})}" class="filter-btn"
                                 th:classappend="${currentStatus == st ? 'active' : ''}"
-                                th:text="${st == 'ALL' ? 'Tất cả' : (st == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : (st == 'DA_XAC_NHAN' ? 'Đã xác nhận' : (st == 'DANG_GIAO' ? 'Đang giao' : (st == 'HOAN_THANH' ? 'Hoàn thành' : (st == 'TRA_HANG' ? 'Trả hàng' : 'Đã hủy')))))}">
+                                th:text="${st == 'ALL' ? 'Tất cả (' + orderStatusCounts['ALL'] + ')' :
+                                    (st == 'CHO_XAC_NHAN' ? 'Chờ xác nhận (' + orderStatusCounts['CHO_XAC_NHAN'] + ')' :
+                                    (st == 'DA_XAC_NHAN' ? 'Đã xác nhận (' + orderStatusCounts['DA_XAC_NHAN'] + ')' :
+                                    (st == 'DANG_GIAO' ? 'Đang giao (' + orderStatusCounts['DANG_GIAO'] + ')' :
+                                    (st == 'HOAN_THANH' ? 'Hoàn thành (' + orderStatusCounts['HOAN_THANH'] + ')' :
+                                    (st == 'TRA_HANG' ? 'Trả hàng (' + orderStatusCounts['TRA_HANG'] + ')' : 'Đã hủy (' + orderStatusCounts['DA_HUY'] + ')')))))}">
                             </a>
                         </div>
                     </div>

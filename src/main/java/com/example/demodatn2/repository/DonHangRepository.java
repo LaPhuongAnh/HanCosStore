@@ -14,6 +14,7 @@ public interface DonHangRepository extends JpaRepository<DonHang, Integer> {
     boolean existsByTaiKhoan_Id(Integer taiKhoanId);
     List<DonHang> findAllByOrderByNgayDatDesc();
     List<DonHang> findByTrangThaiOrderByNgayDatDesc(String trangThai);
+        long countByTrangThaiIn(List<String> trangThais);
         java.util.Optional<DonHang> findByMaDonHangIgnoreCase(String maDonHang);
 
         @org.springframework.data.jpa.repository.Query("SELECT SUM(d.tongTien) FROM DonHang d WHERE d.trangThai IN ('HOAN_THANH', 'COMPLETED', 'DELIVERED')")

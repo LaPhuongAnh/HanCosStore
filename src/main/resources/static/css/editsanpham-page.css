@@ -1,17 +1,17 @@
 :root {
-            --dark: #0f0e0d;
-            --gold: #c9a96e;
-            --gold-light: #d4bb8a;
-            --gold-dark: #b08c4a;
-            --cream: #faf8f5;
-            --cream-dark: #f0ece4;
+            --dark: #0a0a0a;
+            --gold: #111111;
+            --gold-light: #1f1f1f;
+            --gold-dark: #000000;
+            --cream: #f5f5f5;
+            --cream-dark: #ebebeb;
             --white: #ffffff;
-            --text: #2c2a27;
-            --text-muted: #8a8680;
-            --border: #e8e4de;
-            --danger: #c0392b;
-            --font-title: 'Cormorant Garamond', Georgia, serif;
-            --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --text: #171717;
+            --text-muted: #707070;
+            --border: #d9d9d9;
+            --danger: #111111;
+            --font-title: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             --radius: 8px;
             --shadow: 0 2px 16px rgba(15,14,13,.06);
             --shadow-hover: 0 4px 24px rgba(15,14,13,.1);
@@ -22,7 +22,7 @@
 
         body {
             font-family: var(--font-body);
-            background: var(--cream);
+                    background: #efefef;
             color: var(--text);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
@@ -50,7 +50,7 @@
             font-size: 22px;
             font-weight: 600;
             letter-spacing: 3px;
-            color: var(--gold);
+            color: #ffffff;
             text-decoration: none;
         }
         .nav-links { display: flex; gap: 32px; align-items: center; }
@@ -63,7 +63,7 @@
             text-transform: uppercase;
             transition: color var(--transition);
         }
-        .nav-links a:hover { color: var(--gold); }
+        .nav-links a:hover { color: #ffffff; }
 
         /* -- Banner -- */
         .banner {
@@ -80,7 +80,7 @@
             transform: translateX(-50%);
             width: 60px;
             height: 2px;
-            background: var(--gold);
+            background: #ffffff;
         }
         .banner h1 {
             font-family: var(--font-title);
@@ -92,7 +92,7 @@
         }
         .banner p {
             font-size: 13px;
-            color: rgba(255,255,255,.5);
+            color: rgba(255,255,255,.7);
             letter-spacing: 1px;
         }
 
@@ -109,7 +109,8 @@
         }
         .form-container {
             background: var(--white);
-            border-radius: var(--radius);
+            border-radius: 12px;
+            border: 1px solid #e2e2e2;
             box-shadow: var(--shadow);
             padding: 48px;
         }
@@ -140,7 +141,7 @@
             left: 0; bottom: 0;
             width: 32px;
             height: 2px;
-            background: var(--gold);
+            background: #111111;
         }
 
         /* -- Section header row -- */
@@ -170,7 +171,7 @@
             letter-spacing: .8px;
             color: var(--text-muted);
         }
-        label .required { color: var(--gold); }
+        label .required { color: #111111; }
 
         input, select, textarea {
             padding: 12px 14px;
@@ -184,17 +185,17 @@
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(201,169,110,.15);
+            border-color: #111111;
+            box-shadow: 0 0 0 3px rgba(17,17,17,.12);
         }
         input:read-only { background: var(--cream); color: var(--text-muted); }
         textarea { resize: vertical; min-height: 90px; }
 
         /* -- Cards (variant / image items) -- */
         .variant-item, .image-item {
-            background: var(--cream);
+            background: #fafafa;
             border: 1px solid var(--border);
-            border-radius: var(--radius);
+            border-radius: 10px;
             padding: 24px;
             margin-bottom: 16px;
             transition: box-shadow var(--transition);
@@ -213,7 +214,7 @@
         .item-number {
             font-family: var(--font-title);
             font-weight: 600;
-            color: var(--gold-dark);
+            color: #111111;
             font-size: 14px;
             letter-spacing: .5px;
         }
@@ -237,12 +238,12 @@
             line-height: 1;
         }
         .btn-primary {
-            background: var(--gold);
-            color: var(--dark);
+            background: #111111;
+            color: #ffffff;
         }
         .btn-primary:hover {
-            background: var(--gold-dark);
-            box-shadow: 0 4px 12px rgba(201,169,110,.3);
+            background: #000000;
+            box-shadow: 0 4px 12px rgba(0,0,0,.25);
         }
         .btn-secondary {
             background: transparent;
@@ -255,21 +256,21 @@
         }
         .btn-danger {
             background: transparent;
-            color: var(--danger);
-            border: 1px solid rgba(192,57,43,.3);
+            color: #111111;
+            border: 1px solid #bdbdbd;
             padding: 7px 14px;
             font-size: 11px;
             border-radius: 5px;
         }
-        .btn-danger:hover { background: var(--danger); color: #fff; }
+        .btn-danger:hover { background: #111111; color: #fff; border-color: #111111; }
         .btn-add {
             background: transparent;
-            color: var(--gold-dark);
-            border: 1px solid var(--gold);
+            color: #111111;
+            border: 1px solid #111111;
         }
         .btn-add:hover {
-            background: var(--gold);
-            color: var(--dark);
+            background: #111111;
+            color: #ffffff;
         }
 
         /* -- Preview images -- */
@@ -288,7 +289,7 @@
         .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
         .checkbox-group input[type="checkbox"] {
             width: 16px; height: 16px;
-            accent-color: var(--gold);
+            accent-color: #111111;
             border-radius: 3px;
         }
         .checkbox-group label {
@@ -315,7 +316,7 @@
         }
         .paste-area:focus {
             outline: none;
-            border-color: var(--gold);
+            border-color: #111111;
         }
 
         /* -- Actions -- */
@@ -333,7 +334,7 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(250,248,245,.88);
+            background: rgba(255,255,255,.88);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -350,7 +351,7 @@
         }
         .spinner {
             border: 3px solid var(--border);
-            border-top: 3px solid var(--gold);
+            border-top: 3px solid #111111;
             border-radius: 50%;
             width: 36px; height: 36px;
             animation: spin .8s linear infinite;

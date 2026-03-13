@@ -1,8 +1,9 @@
 const API_URL = '/api';
 
-const SIZE_LETTERS = ["XS","S","M","L","XL","XXL"];
-const SIZE_PANTS = ["28","29","30","31","32","33","34","35","36","37","38"];
-const SIZE_SHOES = ["35","36","37","38","39","40","41","42","43","44","45"];
+const SIZE_LETTERS = ["XS", "S", "M", "L", "XL", "XXL"];
+const SIZE_PANTS = ["28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38"];
+const SIZE_SHOES = ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45"];
+const PARENT_DANH_MUC_TREE = window.PARENT_DANH_MUC_TREE || [];
 
 function normalizeCategoryName(name) {
     return removeVietnameseTones((name || "").toLowerCase());
@@ -21,6 +22,21 @@ function getSelectedCategoryName() {
     }
 
     return "";
+}
+
+function updateSelectedDanhMucId() {
+    const child = document.getElementById('danhMucId');
+    const parent = document.getElementById('parentDanhMucId');
+    const target = document.getElementById('selectedDanhMucId');
+
+    if (!target) return;
+
+    if (child && child.value) {
+        target.value = child.value;
+        return;
+    }
+
+    target.value = parent && parent.value ? parent.value : '';
 }
 
 function getSizeOptions() {
@@ -72,47 +88,28 @@ async function loadChildren() {
     const parentId = document.getElementById('parentDanhMucId').value;
     const select = document.getElementById('danhMucId');
 
-    // Xóa danh mục con cũ
     select.innerHTML = '<option value="">-- Chọn danh mục con --</option>';
 
     if (!parentId) {
         select.disabled = true;
         updateAllSizeSelects();
+        updateSelectedDanhMucId();
         return;
     }
     select.disabled = false;
 
-    try {
-        const response = await fetch(`${API_URL}/danh-muc/${parentId}/children`);
-        const children = await response.json();
+    const parent = PARENT_DANH_MUC_TREE.find(dm => String(dm.id) === String(parentId));
+    const children = Array.isArray(parent?.danhMucCon) ? parent.danhMucCon : [];
 
-        children.forEach(dm => {
-            const option = document.createElement('option');
-            option.value = dm.id;
-            option.textContent = dm.ten;
-            select.appendChild(option);
-        });
-        updateAllSizeSelects();
-    } catch (error) {
-        console.error('Lỗi tải danh mục con:', error);
-    }
-}
+    children.forEach(dm => {
+        const option = document.createElement('option');
+        option.value = dm.id;
+        option.textContent = dm.ten;
+        select.appendChild(option);
+    });
 
-async function loadDanhMuc() {
-    try {
-        const response = await fetch(`${API_URL}/danh-muc`);
-        const danhMucs = await response.json();
-        const select = document.getElementById('danhMucId');
-
-        danhMucs.forEach(dm => {
-            const option = document.createElement('option');
-            option.value = dm.id;
-            option.textContent = dm.ten;
-            select.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Lỗi tải danh mục:', error);
-    }
+    updateAllSizeSelects();
+    updateSelectedDanhMucId();
 }
 
 function addVariant() {
@@ -120,71 +117,67 @@ function addVariant() {
     const index = variantsList.children.length;
 
     const html = `
-                <div class="variant-item" data-index="${index}">
-                    <div class="item-header">
-                        <span class="item-number"><i class="fas fa-tags"></i> Biến thể #${index + 1}</span>
-                        <button type="button" class="btn btn-danger" onclick="removeVariant(${index})">
-                            <i class="fas fa-trash"></i> Xóa
-                        </button>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                          <label>Màu Sắc <span class="required">*</span></label>
-
-  <select name="variants[${index}].mauSac"
-          required
-        onchange="updateSKU(this.closest('.variant-item').dataset.index)"
-          class="form-control">
-    <option value="">-- Chọn màu --</option>
-    <option value="Đen">Đen</option>
-    <option value="Trắng">Trắng</option>
-    <option value="Đỏ">Đỏ</option>
-    <option value="Xanh dương">Xanh dương</option>
-    <option value="Xanh lá">Xanh lá</option>
-    <option value="Vàng">Vàng</option>
-    <option value="Cam">Cam</option>
-    <option value="Tím">Tím</option>
-    <option value="Hồng">Hồng</option>
-    <option value="Nâu">Nâu</option>
-    <option value="Xám">Xám</option>
-    <option value="Be">Be</option>
-  </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Kích Cỡ <span class="required">*</span></label>
-                            <select name="variants[${index}].kichCo" required onchange="updateSKU(${index})">
-                                ${buildSizeOptionsHtml('')}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Mã SKU <span class="required">*</span></label>
-                            <input type="text" name="variants[${index}].maSKU" required placeholder="AO_PHAO_AKP_DEN_S">
-                        </div>
-                        <div class="form-group">
-                            <label>Số Lượng Tồn <span class="required">*</span></label>
-                            <input type="number" name="variants[${index}].soLuongTon" required min="0" placeholder="100">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Giá Bán <span class="required">*</span></label>
-                            <input type="number" name="variants[${index}].gia" required min="0" placeholder="850000">
-                        </div>
-                        <div class="form-group">
-                            <label>Giá Gốc</label>
-                            <input type="number" name="variants[${index}].giaGoc" min="0" placeholder="1200000">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Khối Lượng (gram)</label>
-                            <input type="number" name="variants[${index}].khoiLuongGram" min="0" placeholder="500">
-                        </div>
-                    </div>
+        <div class="variant-item" data-index="${index}">
+            <div class="item-header">
+                <span class="item-number"><i class="fas fa-tags"></i> Biến thể #${index + 1}</span>
+                <button type="button" class="btn btn-danger" onclick="removeVariant(${index})">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Màu Sắc <span class="required">*</span></label>
+                    <select name="bienThes[${index}].mauSac" required onchange="updateSKU(this.closest('.variant-item').dataset.index)" class="form-control">
+                        <option value="">-- Chọn màu --</option>
+                        <option value="Đen">Đen</option>
+                        <option value="Trắng">Trắng</option>
+                        <option value="Đỏ">Đỏ</option>
+                        <option value="Xanh dương">Xanh dương</option>
+                        <option value="Xanh lá">Xanh lá</option>
+                        <option value="Vàng">Vàng</option>
+                        <option value="Cam">Cam</option>
+                        <option value="Tím">Tím</option>
+                        <option value="Hồng">Hồng</option>
+                        <option value="Nâu">Nâu</option>
+                        <option value="Xám">Xám</option>
+                        <option value="Be">Be</option>
+                    </select>
                 </div>
-            `;
+                <div class="form-group">
+                    <label>Kích Cỡ <span class="required">*</span></label>
+                    <select name="bienThes[${index}].kichCo" required onchange="updateSKU(${index})">
+                        ${buildSizeOptionsHtml('')}
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Mã SKU <span class="required">*</span></label>
+                    <input type="text" name="bienThes[${index}].maSKU" required placeholder="AO_PHAO_AKP_DEN_S">
+                </div>
+                <div class="form-group">
+                    <label>Số Lượng Tồn <span class="required">*</span></label>
+                    <input type="number" name="bienThes[${index}].soLuongTon" required min="0" placeholder="100">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Giá Bán <span class="required">*</span></label>
+                    <input type="number" name="bienThes[${index}].gia" required min="0" placeholder="850000">
+                </div>
+                <div class="form-group">
+                    <label>Giá Gốc</label>
+                    <input type="number" name="bienThes[${index}].giaGoc" min="0" placeholder="1200000">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Khối Lượng (gram)</label>
+                    <input type="number" name="bienThes[${index}].khoiLuongGram" min="0" placeholder="500">
+                </div>
+            </div>
+        </div>
+    `;
 
     variantsList.insertAdjacentHTML('beforeend', html);
 }
@@ -194,11 +187,9 @@ function updateSKU(index) {
     if (!item) return;
 
     const maSP = document.getElementById('maSanPham').value.trim();
-
-    // Màu là SELECT
     const mauSacEl = item.querySelector('select[name*=".mauSac"]');
     const kichCoEl = item.querySelector('select[name*=".kichCo"]');
-    const skuEl    = item.querySelector('input[name*=".maSKU"]');
+    const skuEl = item.querySelector('input[name*=".maSKU"]');
 
     if (!mauSacEl || !kichCoEl || !skuEl) return;
 
@@ -234,7 +225,7 @@ function removeVietnameseTones(str) {
 
 function updateAllSKUs() {
     const variants = document.querySelectorAll('.variant-item');
-    variants.forEach((v, index) => {
+    variants.forEach((v) => {
         updateSKU(v.getAttribute('data-index'));
     });
 }
@@ -256,32 +247,31 @@ function addColorImageWithColor(color) {
     const index = colorImagesList.children.length;
 
     const html = `
-                <div class="image-item" data-index="${index}">
-                    <div class="item-header">
-                        <span class="item-number"><i class="fas fa-palette"></i> Hình màu #${index + 1}</span>
-                        <button type="button" class="btn btn-danger" onclick="removeColorImage(${index})">
-                            <i class="fas fa-trash"></i> Xóa
-                        </button>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Màu Sắc <span class="required">*</span></label>
-                            <input type="text" name="colorImages[${index}].mauSac" required value="${color}" placeholder="Đen">
-                        </div>
-                       <div class="form-group">
-  <label>Chọn Ảnh <span class="required">*</span></label>
-
-  <input type="file"
-         accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.tif,.tiff,.heic,.heif,image/*"
-         class="file-upload"
-         onchange="handleFileUpload(this, 'colorImages[${index}].duongDanAnh', 'preview_color_img_${index}')">
-
-  <input type="hidden" name="colorImages[${index}].duongDanAnh" required>
-  <img id="preview_color_img_${index}" class="preview-img" src="" alt="Preview">
-</div>
-                    </div>
+        <div class="image-item" data-index="${index}">
+            <div class="item-header">
+                <span class="item-number"><i class="fas fa-palette"></i> Hình màu #${index + 1}</span>
+                <button type="button" class="btn btn-danger" onclick="removeColorImage(${index})">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Màu Sắc <span class="required">*</span></label>
+                    <input type="text" name="hinhAnhMauSacs[${index}].mauSac" required value="${color}" placeholder="Đen">
                 </div>
-            `;
+                <div class="form-group">
+                    <label>Chọn Ảnh <span class="required">*</span></label>
+                    <input type="file"
+                           accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.tif,.tiff,.heic,.heif,image/*"
+                           class="file-upload"
+                           onchange="handleFileUpload(this, 'hinhAnhMauSacs[${index}].duongDanAnh', 'preview_color_img_${index}')">
+                    <input type="hidden" name="hinhAnhMauSacs[${index}].duongDanAnh" required>
+                    <img id="preview_color_img_${index}" class="preview-img" src="" alt="Preview">
+                </div>
+            </div>
+        </div>
+    `;
+
     colorImagesList.insertAdjacentHTML('beforeend', html);
 }
 
@@ -297,7 +287,32 @@ function updateVariantNumbers() {
     const variants = document.querySelectorAll('#variantsList .variant-item');
     variants.forEach((variant, idx) => {
         variant.setAttribute('data-index', idx);
-        variant.querySelector('.item-number').textContent = `Biến thể #${idx + 1}`;
+        const removeBtn = variant.querySelector('.item-header .btn-danger');
+        const mauSacEl = variant.querySelector('select[name*=".mauSac"]');
+        const kichCoEl = variant.querySelector('select[name*=".kichCo"]');
+        const maSkuEl = variant.querySelector('input[name*=".maSKU"]');
+        const soLuongTonEl = variant.querySelector('input[name*=".soLuongTon"]');
+        const giaEl = variant.querySelector('input[name*=".gia"]');
+        const giaGocEl = variant.querySelector('input[name*=".giaGoc"]');
+        const khoiLuongEl = variant.querySelector('input[name*=".khoiLuongGram"]');
+
+        variant.querySelector('.item-number').innerHTML = `<i class="fas fa-tags"></i> Biến thể #${idx + 1}`;
+
+        if (removeBtn) {
+            removeBtn.setAttribute('onclick', `removeVariant(${idx})`);
+        }
+        if (mauSacEl) {
+            mauSacEl.name = `bienThes[${idx}].mauSac`;
+        }
+        if (kichCoEl) {
+            kichCoEl.name = `bienThes[${idx}].kichCo`;
+            kichCoEl.setAttribute('onchange', `updateSKU(${idx})`);
+        }
+        if (maSkuEl) maSkuEl.name = `bienThes[${idx}].maSKU`;
+        if (soLuongTonEl) soLuongTonEl.name = `bienThes[${idx}].soLuongTon`;
+        if (giaEl) giaEl.name = `bienThes[${idx}].gia`;
+        if (giaGocEl) giaGocEl.name = `bienThes[${idx}].giaGoc`;
+        if (khoiLuongEl) khoiLuongEl.name = `bienThes[${idx}].khoiLuongGram`;
     });
 }
 
@@ -320,32 +335,32 @@ function addImage() {
     const index = getNextImageIndex();
 
     const html = `
-                <div class="image-item" data-index="${index}">
-                    <div class="item-header">
-                        <span class="item-number"><i class="fas fa-image"></i> Hình ảnh #${index + 1}</span>
-                        <button type="button" class="btn btn-danger" onclick="removeImage(${index})">
-                            <i class="fas fa-trash"></i> Xóa
-                        </button>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Chọn Ảnh <span class="required">*</span></label>
-                            <input type="file" accept="image/*" class="file-upload"
-                                onchange="handleFileUpload(this, 'images[${index}].duongDanAnh', 'preview_img_${index}')">
-                            <input type="hidden" name="images[${index}].duongDanAnh" required>
-                            <img id="preview_img_${index}" class="preview-img" src="" alt="Preview">
-                        </div>
-                        <div class="form-group">
-                            <label>Thứ Tự</label>
-                            <input type="number" name="images[${index}].thuTu" value="${index + 1}" min="1">
-                        </div>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" name="images[${index}].laAnhChinh" id="primary_${index}" ${index === 0 ? 'checked' : ''} onchange="handlePrimaryChange(${index})">
-                        <label for="primary_${index}">Đặt làm ảnh chính</label>
-                    </div>
+        <div class="image-item" data-index="${index}">
+            <div class="item-header">
+                <span class="item-number"><i class="fas fa-image"></i> Hình ảnh #${index + 1}</span>
+                <button type="button" class="btn btn-danger" onclick="removeImage(${index})">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Chọn Ảnh <span class="required">*</span></label>
+                    <input type="file" accept="image/*" class="file-upload"
+                           onchange="handleFileUpload(this, 'hinhAnhSanPhams[${index}].duongDanAnh', 'preview_img_${index}')">
+                    <input type="hidden" name="hinhAnhSanPhams[${index}].duongDanAnh" required>
+                    <img id="preview_img_${index}" class="preview-img" src="" alt="Preview">
                 </div>
-            `;
+                <div class="form-group">
+                    <label>Thứ Tự</label>
+                    <input type="number" name="hinhAnhSanPhams[${index}].thuTu" value="${index + 1}" min="1">
+                </div>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" name="hinhAnhSanPhams[${index}].laAnhChinh" id="primary_${index}" ${index === 0 ? 'checked' : ''} onchange="handlePrimaryChange(${index})">
+                <label for="primary_${index}">Đặt làm ảnh chính</label>
+            </div>
+        </div>
+    `;
 
     imagesList.insertAdjacentHTML('beforeend', html);
     return index;
@@ -355,12 +370,10 @@ async function handleFileUpload(fileInput, hiddenInputName, previewId) {
     const file = fileInput.files[0];
     if (!file) return;
 
-    // Xem trước ngay
     const preview = document.getElementById(previewId);
     preview.src = URL.createObjectURL(file);
     preview.classList.add('show');
 
-    // Tạo FormData
     const formData = new FormData();
     formData.append('file', file);
 
@@ -373,7 +386,10 @@ async function handleFileUpload(fileInput, hiddenInputName, previewId) {
 
         if (response.ok) {
             const relativePath = await response.text();
-            document.querySelector(`input[name="${hiddenInputName}"]`).value = relativePath;
+            const hiddenInput = document.querySelector(`input[name="${hiddenInputName}"]`);
+            if (hiddenInput) {
+                hiddenInput.value = relativePath;
+            }
         } else {
             const error = await response.text();
             showAlert('error', `Lỗi upload: ${error}`);
@@ -385,7 +401,50 @@ async function handleFileUpload(fileInput, hiddenInputName, previewId) {
 
 function removeImage(index) {
     const image = document.querySelector(`#imagesList .image-item[data-index="${index}"]`);
-    if (image) image.remove();
+    if (image) {
+        image.remove();
+        updateImageNumbers();
+    }
+}
+
+function updateImageNumbers() {
+    const images = document.querySelectorAll('#imagesList .image-item');
+    images.forEach((image, idx) => {
+        const removeBtn = image.querySelector('.item-header .btn-danger');
+        const fileInput = image.querySelector('input.file-upload');
+        const hiddenInput = image.querySelector('input[type="hidden"][name*=".duongDanAnh"]');
+        const previewImg = image.querySelector('img.preview-img');
+        const thuTuInput = image.querySelector('input[name*=".thuTu"]');
+        const primaryCheckbox = image.querySelector('input[type="checkbox"][name*=".laAnhChinh"]');
+        const primaryLabel = image.querySelector('.checkbox-group label');
+
+        image.setAttribute('data-index', idx);
+        image.querySelector('.item-number').innerHTML = `<i class="fas fa-image"></i> Hình ảnh #${idx + 1}`;
+
+        if (removeBtn) {
+            removeBtn.setAttribute('onclick', `removeImage(${idx})`);
+        }
+        if (fileInput) {
+            fileInput.setAttribute('onchange', `handleFileUpload(this, 'hinhAnhSanPhams[${idx}].duongDanAnh', 'preview_img_${idx}')`);
+        }
+        if (hiddenInput) {
+            hiddenInput.name = `hinhAnhSanPhams[${idx}].duongDanAnh`;
+        }
+        if (previewImg) {
+            previewImg.id = `preview_img_${idx}`;
+        }
+        if (thuTuInput) {
+            thuTuInput.name = `hinhAnhSanPhams[${idx}].thuTu`;
+        }
+        if (primaryCheckbox) {
+            primaryCheckbox.name = `hinhAnhSanPhams[${idx}].laAnhChinh`;
+            primaryCheckbox.id = `primary_${idx}`;
+            primaryCheckbox.setAttribute('onchange', `handlePrimaryChange(${idx})`);
+        }
+        if (primaryLabel) {
+            primaryLabel.setAttribute('for', `primary_${idx}`);
+        }
+    });
 }
 
 function setFileToInput(fileInput, file) {
@@ -423,7 +482,7 @@ function handleImagePaste(event) {
         if (!input) return;
 
         setFileToInput(input, file);
-        handleFileUpload(input, `images[${index}].duongDanAnh`, `preview_img_${index}`);
+        handleFileUpload(input, `hinhAnhSanPhams[${index}].duongDanAnh`, `preview_img_${index}`);
     });
 }
 
@@ -439,35 +498,68 @@ function addColorImage() {
     const index = colorImagesList.children.length;
 
     const html = `
-                <div class="image-item" data-index="${index}">
-                    <div class="item-header">
-                        <span class="item-number"><i class="fas fa-palette"></i> Hình màu #${index + 1}</span>
-                        <button type="button" class="btn btn-danger" onclick="removeColorImage(${index})">
-                            <i class="fas fa-trash"></i> Xóa
-                        </button>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Màu Sắc <span class="required">*</span></label>
-                            <input type="text" name="colorImages[${index}].mauSac" required placeholder="Đen">
-                        </div>
-                        <div class="form-group">
-                            <label>Chọn Ảnh <span class="required">*</span></label>
-                            <input type="file" accept="image/*" class="file-upload"
-                                onchange="handleFileUpload(this, 'colorImages[${index}].duongDanAnh', 'preview_color_img_${index}')">
-                            <input type="hidden" name="colorImages[${index}].duongDanAnh" required>
-                            <img id="preview_color_img_${index}" class="preview-img" src="" alt="Preview">
-                        </div>
-                    </div>
+        <div class="image-item" data-index="${index}">
+            <div class="item-header">
+                <span class="item-number"><i class="fas fa-palette"></i> Hình màu #${index + 1}</span>
+                <button type="button" class="btn btn-danger" onclick="removeColorImage(${index})">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Màu Sắc <span class="required">*</span></label>
+                    <input type="text" name="hinhAnhMauSacs[${index}].mauSac" required placeholder="Đen">
                 </div>
-            `;
+                <div class="form-group">
+                    <label>Chọn Ảnh <span class="required">*</span></label>
+                    <input type="file" accept="image/*" class="file-upload"
+                           onchange="handleFileUpload(this, 'hinhAnhMauSacs[${index}].duongDanAnh', 'preview_color_img_${index}')">
+                    <input type="hidden" name="hinhAnhMauSacs[${index}].duongDanAnh" required>
+                    <img id="preview_color_img_${index}" class="preview-img" src="" alt="Preview">
+                </div>
+            </div>
+        </div>
+    `;
 
     colorImagesList.insertAdjacentHTML('beforeend', html);
 }
 
 function removeColorImage(index) {
-    const image = document.querySelectorAll('#colorImagesList .image-item')[index];
-    if (image) image.remove();
+    const image = document.querySelector(`#colorImagesList .image-item[data-index="${index}"]`);
+    if (image) {
+        image.remove();
+        updateColorImageNumbers();
+    }
+}
+
+function updateColorImageNumbers() {
+    const colorImages = document.querySelectorAll('#colorImagesList .image-item');
+    colorImages.forEach((image, idx) => {
+        const removeBtn = image.querySelector('.item-header .btn-danger');
+        const mauSacInput = image.querySelector('input[name*=".mauSac"]');
+        const fileInput = image.querySelector('input.file-upload');
+        const hiddenInput = image.querySelector('input[type="hidden"][name*=".duongDanAnh"]');
+        const previewImg = image.querySelector('img.preview-img');
+
+        image.setAttribute('data-index', idx);
+        image.querySelector('.item-number').innerHTML = `<i class="fas fa-palette"></i> Hình màu #${idx + 1}`;
+
+        if (removeBtn) {
+            removeBtn.setAttribute('onclick', `removeColorImage(${idx})`);
+        }
+        if (mauSacInput) {
+            mauSacInput.name = `hinhAnhMauSacs[${idx}].mauSac`;
+        }
+        if (fileInput) {
+            fileInput.setAttribute('onchange', `handleFileUpload(this, 'hinhAnhMauSacs[${idx}].duongDanAnh', 'preview_color_img_${idx}')`);
+        }
+        if (hiddenInput) {
+            hiddenInput.name = `hinhAnhMauSacs[${idx}].duongDanAnh`;
+        }
+        if (previewImg) {
+            previewImg.id = `preview_color_img_${idx}`;
+        }
+    });
 }
 
 function showAlert(type, message) {
@@ -482,7 +574,7 @@ function showAlert(type, message) {
 async function resetForm() {
     const result = await Swal.fire({
         title: 'Bạn có chắc chắn?',
-        text: "Tất cả dữ liệu đã nhập sẽ bị xóa!",
+        text: 'Tất cả dữ liệu đã nhập sẽ bị xóa!',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#8b4d4d',
@@ -500,116 +592,50 @@ async function resetForm() {
         addVariant();
         addImage();
         addColorImage();
+        updateSelectedDanhMucId();
     }
 }
 
-function collectFormData() {
-    const formData = {
-        maSanPham: document.getElementById('maSanPham').value.trim(),
-        ten: document.getElementById('ten').value.trim(),
-        moTaNgan: document.getElementById('moTaNgan').value.trim(),
-        moTa: document.getElementById('moTa').value.trim(),
-        chatLieu: document.getElementById('chatLieu').value.trim(),
-        gioiTinh: document.getElementById('gioiTinh').value,
-        danhMucId: document.getElementById('danhMucId').value ? parseInt(document.getElementById('danhMucId').value) : (document.getElementById('parentDanhMucId').value ? parseInt(document.getElementById('parentDanhMucId').value) : null),
-        bienThes: [],
-        hinhAnhSanPhams: [],
-        hinhAnhMauSacs: []
-    };
+document.getElementById('productForm').addEventListener('submit', (e) => {
+    updateSelectedDanhMucId();
 
     const variants = document.querySelectorAll('#variantsList .variant-item');
-    variants.forEach(variant => {
-        const bienThe = {
-            maSKU: variant.querySelector('input[name*=".maSKU"]').value.trim(),
-            mauSac: variant.querySelector('select[name*=".mauSac"]').value.trim(),
-            kichCo: variant.querySelector('select[name*=".kichCo"]').value,
-            soLuongTon: parseInt(variant.querySelector('input[name*=".soLuongTon"]').value) || 0,
-            gia: parseFloat(variant.querySelector('input[name*=".gia"]').value) || 0,
-            giaGoc: variant.querySelector('input[name*=".giaGoc"]').value ? parseFloat(variant.querySelector('input[name*=".giaGoc"]').value) : null,
-            khoiLuongGram: variant.querySelector('input[name*=".khoiLuongGram"]').value ? parseInt(variant.querySelector('input[name*=".khoiLuongGram"]').value) : null,
-            trangThai: 'ACTIVE'
-        };
-        formData.bienThes.push(bienThe);
-    });
-
     const images = document.querySelectorAll('#imagesList .image-item');
-    images.forEach(image => {
-        formData.hinhAnhSanPhams.push({
-            duongDanAnh: image.querySelector('input[name*="duongDanAnh"]').value.trim(),
-            laAnhChinh: image.querySelector('input[name*="laAnhChinh"]').checked,
-            thuTu: parseInt(image.querySelector('input[name*="thuTu"]').value) || 1
-        });
-    });
 
-    const colorImages = document.querySelectorAll('#colorImagesList .image-item');
-    colorImages.forEach(image => {
-        formData.hinhAnhMauSacs.push({
-            mauSac: image.querySelector('input[name*="mauSac"]').value.trim(),
-            duongDanAnh: image.querySelector('input[name*="duongDanAnh"]').value.trim()
-        });
-    });
-
-    return formData;
-}
-
-document.getElementById('productForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const formData = collectFormData();
-
-    if (formData.bienThes.length === 0) {
+    if (variants.length === 0) {
+        e.preventDefault();
         showAlert('error', 'Vui lòng thêm ít nhất 1 biến thể!');
         return;
     }
 
-    if (formData.hinhAnhSanPhams.length === 0) {
+    if (images.length === 0) {
+        e.preventDefault();
         showAlert('error', 'Vui lòng thêm ít nhất 1 hình ảnh!');
         return;
     }
 
     document.getElementById('loading').classList.add('show');
-
-    try {
-        const response = await fetch(`${API_URL}/san-pham`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify(formData)
-        });
-
-        document.getElementById('loading').classList.remove('show');
-
-        if (response.ok) {
-            const result = await response.json();
-            showAlert('success', `Tạo sản phẩm thành công! Mã: ${result.maSanPham}`);
-
-            setTimeout(() => resetForm(), 2000);
-        } else {
-            const error = await response.text();
-            showAlert('error', `Lỗi: ${error}`);
-        }
-    } catch (error) {
-        document.getElementById('loading').classList.remove('show');
-        showAlert('error', `Lỗi kết nối: ${error.message}`);
-    }
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    // Khởi tạo form trống
     addVariant();
     addImage();
-    // addColorImage(); // Không cần tạo sẵn, người dùng sẽ nhấn Sync hoặc thêm sau
 
     const parentDanhMucEl = document.getElementById('parentDanhMucId');
     const danhMucEl = document.getElementById('danhMucId');
 
     if (parentDanhMucEl) {
-        parentDanhMucEl.addEventListener('change', () => setTimeout(updateAllSizeSelects, 0));
+        parentDanhMucEl.addEventListener('change', () => {
+            setTimeout(updateAllSizeSelects, 0);
+            updateSelectedDanhMucId();
+        });
     }
+
     if (danhMucEl) {
-        danhMucEl.addEventListener('change', updateAllSizeSelects);
+        danhMucEl.addEventListener('change', () => {
+            updateAllSizeSelects();
+            updateSelectedDanhMucId();
+        });
     }
 
     const pasteArea = document.getElementById('imagePasteArea');
@@ -617,4 +643,16 @@ window.addEventListener('DOMContentLoaded', () => {
         pasteArea.addEventListener('click', () => pasteArea.focus());
         pasteArea.addEventListener('paste', handleImagePaste);
     }
+
+    const successAlert = document.getElementById('successAlert');
+    if (successAlert && successAlert.textContent.trim()) {
+        showAlert('success', successAlert.textContent.trim());
+    }
+
+    const errorAlert = document.getElementById('errorAlert');
+    if (errorAlert && errorAlert.textContent.trim()) {
+        showAlert('error', errorAlert.textContent.trim());
+    }
+
+    updateSelectedDanhMucId();
 });

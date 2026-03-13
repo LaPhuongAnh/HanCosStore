@@ -1,0 +1,24 @@
+package com.example.demodatn2.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class PosCartItemDTO implements Serializable {
+    private Integer variantId;
+    private String productName;
+    private String color;
+    private String size;
+    private BigDecimal price;
+    private Integer qty;
+    private Integer stock;
+    private String img;
+}

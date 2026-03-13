@@ -1,495 +1,578 @@
 ﻿<!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title th:text="${p.ten} + ' - Hancos Shop'">Chi tiết sản phẩm</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/hancos-home.css}">
     <link rel="stylesheet" th:href="@{/css/product-detail.css}">
 </head>
+
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg">
-    <div class="container">
-        <a class="navbar-brand" th:href="@{/}">Hancos</a>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">Hancos</a>
 
-        <div class="d-flex align-items-center gap-3 order-lg-3">
-            <!-- Search Trigger (Desktop) -->
-            <div class="dropdown d-none d-lg-block">
-                <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-search"></i>
-                </a>
-                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 300px;">
-                    <form th:action="@{/}" method="get">
-                        <div class="input-group">
-                            <input type="text" name="q" class="form-control" th:value="${query}" placeholder="Tìm sản phẩm...">
-                            <button class="btn btn-dark" type="submit">Tìm</button>
-                        </div>
-                    </form>
+            <div class="d-flex align-items-center gap-3 order-lg-3">
+                <!-- Search Trigger (Desktop) -->
+                <div class="dropdown d-none d-lg-block">
+                    <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-search"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 300px;">
+                        <form th:action="@{/}" method="get">
+                            <div class="input-group">
+                                <input type="text" name="q" class="form-control" th:value="${query}"
+                                    placeholder="Tìm sản phẩm...">
+                                <button class="btn btn-dark" type="submit">Tìm</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Cart -->
-            <a class="nav-link position-relative p-0" th:href="@{/cart}">
-                <i class="fas fa-shopping-bag fs-5"></i>
-                <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                      th:style="'font-size: 0.6rem; display: ' + (${session.CART_COUNT != null and session.CART_COUNT > 0} ? 'inline-block' : 'none')"
-                      th:text="${session.CART_COUNT ?: 0}">0</span>
-            </a>
+                <!-- Cart -->
+                <a class="nav-link position-relative p-0" th:href="@{/cart}">
+                    <i class="fas fa-shopping-bag fs-5"></i>
+                    <span id="cart-badge"
+                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                        th:style="'font-size: 0.6rem; display: ' + (${session.CART_COUNT != null and session.CART_COUNT > 0} ? 'inline-block' : 'none')"
+                        th:text="${session.CART_COUNT ?: 0}">0</span>
+                </a>
 
-            <!-- User -->
-            <div class="dropdown" th:if="${session.LOGIN_USER != null}">
-                <a class="nav-link p-0" href="#" role="button" data-bs-toggle="dropdown">
+                <!-- User -->
+                <div class="dropdown" th:if="${session.LOGIN_USER != null}">
+                    <a class="nav-link p-0" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle fs-5"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="dropdown-header border-bottom mb-2">
+                            <span class="fw-bold d-block" th:text="${session.LOGIN_USER.hoTen}">User</span>
+                            <small class="text-muted" th:text="${session.LOGIN_USER.email}"></small>
+                        </li>
+                        <li><a class="dropdown-item" th:href="@{/account/profile}">Thông tin tài khoản</a></li>
+                        <li><a class="dropdown-item" th:href="@{/order/my-orders}">Đơn hàng của tôi</a></li>
+                        <li
+                            th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li
+                            th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
+                            <a class="dropdown-item text-danger fw-bold" th:href="@{/admin/dashboard}">Trang quản
+                                trị</a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item text-muted" th:href="@{/logout}">Đăng xuất</a></li>
+                    </ul>
+                </div>
+                <a class="nav-link p-0" th:if="${session.LOGIN_USER == null}" th:href="@{/login}">
                     <i class="fas fa-user-circle fs-5"></i>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li class="dropdown-header border-bottom mb-2">
-                        <span class="fw-bold d-block" th:text="${session.LOGIN_USER.hoTen}">User</span>
-                        <small class="text-muted" th:text="${session.LOGIN_USER.email}"></small>
+
+                <button class="navbar-toggler p-0 border-0" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#nav">
+                    <i class="fas fa-bars fs-4"></i>
+                </button>
+            </div>
+
+            <div id="nav" class="collapse navbar-collapse">
+                <ul class="navbar-nav mx-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/}">Trang chủ</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Danh
+                            mục</a>
+                        <ul class="dropdown-menu border-0 shadow-sm">
+                            <li class="dropdown-submenu" th:each="parent : ${categories}"
+                                th:if="${parent.danhMucCha == null}">
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    th:href="@{/(danhMucId=${parent.id})}">
+                                    <span th:text="${parent.ten}">Danh mục cha</span>
+                                    <i class="fa-solid fa-chevron-right small ms-3" style="font-size: 0.7rem;"
+                                        th:if="${not #lists.isEmpty(parent.danhMucCon)}"></i>
+                                </a>
+                                <ul class="dropdown-menu border-0 shadow-sm"
+                                    th:if="${not #lists.isEmpty(parent.danhMucCon)}">
+                                    <li th:each="child : ${parent.danhMucCon}">
+                                        <a class="dropdown-item" th:href="@{/(danhMucId=${child.id})}"
+                                            th:text="${child.ten}">Danh mục con</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
                     </li>
-                    <li><a class="dropdown-item" th:href="@{/account/profile}">Thông tin tài khoản</a></li>
-                    <li><a class="dropdown-item" th:href="@{/order/my-orders}">Đơn hàng của tôi</a></li>
-                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li th:if="${session.ROLES != null and (#lists.contains(session.ROLES, 'ADMIN') or #lists.contains(session.ROLES, 'STAFF'))}">
-                        <a class="dropdown-item text-danger fw-bold" th:href="@{/admin/dashboard}">Trang quản trị</a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-muted" th:href="@{/logout}">Đăng xuất</a></li>
                 </ul>
             </div>
-            <a class="nav-link p-0" th:if="${session.LOGIN_USER == null}" th:href="@{/login}">
-                <i class="fas fa-user-circle fs-5"></i>
-            </a>
+        </div>
+    </nav>
 
-            <button class="navbar-toggler p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-                <i class="fas fa-bars fs-4"></i>
-            </button>
+    <div class="container product-detail-container">
+        <div class="row">
+            <!-- IMAGE GALLERY -->
+            <div class="col-lg-6">
+                <div class="main-img-container" id="mainImgContainer">
+                    <img th:src="${not #lists.isEmpty(p.hinhAnhGallery) ? p.hinhAnhGallery[0] : '/images/no-image.png'}"
+                        id="mainProductImg" alt="product">
+                </div>
+                <div class="thumb-grid">
+                    <div class="thumb-item" th:each="img, stat : ${p.hinhAnhGallery}"
+                        th:classappend="${stat.index == 0 ? 'active' : ''}" th:data-img="${img}"
+                        onclick="changeMainImage(this.getAttribute('data-img'), this)">
+                        <img th:src="${img}" alt="thumbnail">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRODUCT INFO -->
+            <div class="col-lg-6 product-info-col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
+                        <!-- Danh mục cha -->
+                        <li class="breadcrumb-item" th:if="${p.danhMucChaId != null}">
+                            <a th:href="@{/(danhMucId=${p.danhMucChaId})}" th:text="${p.danhMucChaTen}">Danh mục cha</a>
+                        </li>
+                        <!-- Danh mục hiện tại (có thể là cha hoặc con) -->
+                        <li class="breadcrumb-item" th:if="${p.danhMucId != null}">
+                            <a th:href="@{/(danhMucId=${p.danhMucId})}" th:text="${p.danhMucTen}">Danh mục</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page" th:text="${p.ten}">Sản phẩm</li>
+                    </ol>
+                </nav>
+
+                <div class="p-category">
+                    <span th:if="${p.danhMucChaTen != null}" th:text="${p.danhMucChaTen} + ' / '"></span>
+                    <span th:text="${p.danhMucTen != null ? p.danhMucTen : 'Sản phẩm'}">DANH MỤC</span>
+                </div>
+                <h1 class="p-name" th:text="${p.ten}">Tên sản phẩm</h1>
+
+                <div class="p-price">
+                    <span id="displayPrice">Đang cập nhật...</span>
+                    <span id="displayOldPrice" class="old-price"></span>
+                </div>
+
+                <p class="mb-4 text-muted" th:text="${p.moTaNgan}">Mô tả ngắn về sản phẩm...</p>
+
+                <!-- COLORS -->
+                <div>
+                    <span class="option-label">Màu sắc: <span id="selectedColorName" class="text-dark">Chọn
+                            màu</span></span>
+                    <div class="color-options">
+                        <!-- Sẽ dùng script để render hoặc Thymeleaf render duy nhất các màu có sẵn -->
+                        <th:block th:each="entry : ${p.hinhAnhTheoMau}">
+                            <div class="color-opt" th:data-color="${entry.key}" th:data-img="${entry.value}"
+                                th:title="${entry.key}"
+                                onclick="selectColor(this.getAttribute('data-color'), this.getAttribute('data-img'), this)">
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- SIZES -->
+                <div>
+                    <span class="option-label">Kích thước: <span id="selectedSizeName" class="text-dark">Chọn
+                            size</span></span>
+                    <div class="size-options" id="sizeOptionsContainer">
+                        <!-- Sẽ được update bởi JS dựa trên màu được chọn -->
+                    </div>
+                </div>
+
+                <!-- QUANTITY & ADD TO CART -->
+                <div class="d-flex align-items-center gap-3">
+                    <div class="quantity-selector">
+                        <button class="qty-btn" onclick="updateQty(-1)">-</button>
+                        <input type="number" class="qty-input" id="cartQty" value="1" min="1" step="1"
+                            inputmode="numeric" oninput="handleQtyInput(this)">
+                        <button class="qty-btn" onclick="updateQty(1)">+</button>
+                    </div>
+                    <div class="flex-grow-1">
+                        <button class="add-to-cart-btn" id="addToCartBtn" onclick="addToCart()" disabled>Thêm vào giỏ
+                            hàng</button>
+                    </div>
+                </div>
+
+                <div class="product-meta">
+                    <p><strong>Mã sản phẩm:</strong> <span th:text="${p != null ? p.maSanPham : ''}">SKU</span></p>
+                    <p><strong>Chất liệu:</strong> <span th:text="${p != null ? p.chatLieu : ''}">Vải</span></p>
+                    <p><strong>Giới tính:</strong> <span th:text="${p != null ? p.gioiTinh : ''}">Unisex</span></p>
+                    <p><strong>Tình trạng:</strong> <span id="stockStatus">Chọn biến thể</span></p>
+                </div>
+            </div>
         </div>
 
-        <div id="nav" class="collapse navbar-collapse">
-            <ul class="navbar-nav mx-auto align-items-lg-center">
-                <li class="nav-item"><a class="nav-link" th:href="@{/}">Trang chủ</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Danh mục</a>
-                    <ul class="dropdown-menu border-0 shadow-sm">
-                        <li class="dropdown-submenu" th:each="parent : ${categories}" th:if="${parent.danhMucCha == null}">
-                            <a class="dropdown-item d-flex justify-content-between align-items-center" th:href="@{/(danhMucId=${parent.id})}">
-                                <span th:text="${parent.ten}">Danh mục cha</span>
-                                <i class="fa-solid fa-chevron-right small ms-3" style="font-size: 0.7rem;" th:if="${not #lists.isEmpty(parent.danhMucCon)}"></i>
-                            </a>
-                            <ul class="dropdown-menu border-0 shadow-sm" th:if="${not #lists.isEmpty(parent.danhMucCon)}">
-                                <li th:each="child : ${parent.danhMucCon}">
-                                    <a class="dropdown-item" th:href="@{/(danhMucId=${child.id})}" th:text="${child.ten}">Danh mục con</a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+        <!-- DESCRIPTION TABS -->
+        <div class="description-section">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-pane"
+                        type="button" role="tab">Mô tả sản phẩm</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="spec-tab" data-bs-toggle="tab" data-bs-target="#spec-pane"
+                        type="button" role="tab">Thông số</button>
                 </li>
             </ul>
-        </div>
-    </div>
-</nav>
-
-<div class="container product-detail-container">
-    <div class="row">
-        <!-- IMAGE GALLERY -->
-        <div class="col-lg-6">
-            <div class="main-img-container" id="mainImgContainer">
-                <img th:src="${not #lists.isEmpty(p.hinhAnhGallery) ? p.hinhAnhGallery[0] : '/images/no-image.png'}" id="mainProductImg" alt="product">
-            </div>
-            <div class="thumb-grid">
-                <div class="thumb-item" th:each="img, stat : ${p.hinhAnhGallery}" 
-                     th:classappend="${stat.index == 0 ? 'active' : ''}" 
-                     th:data-img="${img}"
-                     onclick="changeMainImage(this.getAttribute('data-img'), this)">
-                    <img th:src="${img}" alt="thumbnail">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="desc-pane" role="tabpanel" th:utext="${p.moTa}">
+                    Nội dung mô tả sản phẩm...
                 </div>
-            </div>
-        </div>
-
-        <!-- PRODUCT INFO -->
-        <div class="col-lg-6 product-info-col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
-                    <!-- Danh mục cha -->
-                    <li class="breadcrumb-item" th:if="${p.danhMucChaId != null}">
-                        <a th:href="@{/(danhMucId=${p.danhMucChaId})}" th:text="${p.danhMucChaTen}">Danh mục cha</a>
-                    </li>
-                    <!-- Danh mục hiện tại (có thể là cha hoặc con) -->
-                    <li class="breadcrumb-item" th:if="${p.danhMucId != null}">
-                        <a th:href="@{/(danhMucId=${p.danhMucId})}" th:text="${p.danhMucTen}">Danh mục</a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page" th:text="${p.ten}">Sản phẩm</li>
-                </ol>
-            </nav>
-
-            <div class="p-category">
-                <span th:if="${p.danhMucChaTen != null}" 
-                      th:text="${p.danhMucChaTen} + ' / '"></span>
-                <span th:text="${p.danhMucTen != null ? p.danhMucTen : 'Sản phẩm'}">DANH MỤC</span>
-            </div>
-            <h1 class="p-name" th:text="${p.ten}">Tên sản phẩm</h1>
-
-            <div class="p-price">
-                <span id="displayPrice">Đang cập nhật...</span>
-                <span id="displayOldPrice" class="old-price"></span>
-            </div>
-
-            <p class="mb-4 text-muted" th:text="${p.moTaNgan}">Mô tả ngắn về sản phẩm...</p>
-
-            <!-- COLORS -->
-            <div>
-                <span class="option-label">Màu sắc: <span id="selectedColorName" class="text-dark">Chọn màu</span></span>
-                <div class="color-options">
-                    <!-- Sẽ dùng script để render hoặc Thymeleaf render duy nhất các màu có sẵn -->
-                    <th:block th:each="entry : ${p.hinhAnhTheoMau}">
-                        <div class="color-opt"
-                             th:data-color="${entry.key}"
-                             th:data-img="${entry.value}"
-                             th:title="${entry.key}"
-                             onclick="selectColor(this.getAttribute('data-color'), this.getAttribute('data-img'), this)">
-                        </div>
-                    </th:block>
+                <div class="tab-pane fade" id="spec-pane" role="tabpanel">
+                    <table class="table table-bordered w-50">
+                        <tr>
+                            <th>Chất liệu</th>
+                            <td th:text="${p.chatLieu}">-</td>
+                        </tr>
+                        <tr>
+                            <th>Giới tính</th>
+                            <td th:text="${p.gioiTinh}">-</td>
+                        </tr>
+                    </table>
                 </div>
-            </div>
-
-            <!-- SIZES -->
-            <div>
-                <span class="option-label">Kích thước: <span id="selectedSizeName" class="text-dark">Chọn size</span></span>
-                <div class="size-options" id="sizeOptionsContainer">
-                    <!-- Sẽ được update bởi JS dựa trên màu được chọn -->
-                </div>
-            </div>
-
-            <!-- QUANTITY & ADD TO CART -->
-            <div class="d-flex align-items-center gap-3">
-                <div class="quantity-selector">
-                    <button class="qty-btn" onclick="updateQty(-1)">-</button>
-                    <input type="number" class="qty-input" id="cartQty" value="1" min="1" step="1" inputmode="numeric" oninput="handleQtyInput(this)">
-                    <button class="qty-btn" onclick="updateQty(1)">+</button>
-                </div>
-                <div class="flex-grow-1">
-                    <button class="add-to-cart-btn" id="addToCartBtn" onclick="addToCart()" enable>Thêm vào giỏ hàng</button>
-                </div>
-            </div>
-
-            <div class="product-meta">
-                <p><strong>Mã sản phẩm:</strong> <span th:text="${p != null ? p.maSanPham : ''}">SKU</span></p>
-                <p><strong>Chất liệu:</strong> <span th:text="${p != null ? p.chatLieu : ''}">Vải</span></p>
-                <p><strong>Giới tính:</strong> <span th:text="${p != null ? p.gioiTinh : ''}">Unisex</span></p>
-                <p><strong>Tình trạng:</strong> <span id="stockStatus">Chọn biến thể</span></p>
             </div>
         </div>
     </div>
 
-    <!-- DESCRIPTION TABS -->
-    <div class="description-section">
-        <ul class="nav nav-tabs" id="productTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-pane" type="button" role="tab">Mô tả sản phẩm</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="spec-tab" data-bs-toggle="tab" data-bs-target="#spec-pane" type="button" role="tab">Thông số</button>
-            </li>
-        </ul>
-        <div class="tab-content">
-            <div class="tab-pane fade show active" id="desc-pane" role="tabpanel" th:utext="${p.moTa}">
-                Nội dung mô tả sản phẩm...
-            </div>
-            <div class="tab-pane fade" id="spec-pane" role="tabpanel">
-                <table class="table table-bordered w-50">
-                    <tr><th>Chất liệu</th><td th:text="${p.chatLieu}">-</td></tr>
-                    <tr><th>Giới tính</th><td th:text="${p.gioiTinh}">-</td></tr>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- FOOTER -->
-<footer class="mt-5">
-    <div class="container">
-        <div class="row g-4 mb-5">
-            <div class="col-md-4">
-                <div class="footer-logo mb-4">HANCOS</div>
-                <p class="small text-muted" style="max-width: 300px;">Hancos cung cấp những sản phẩm thời trang tối giản, chất lượng cao, giúp bạn tự tin hơn mỗi ngày.</p>
-            </div>
-            <div class="col-md-2">
-                <h6>Mua sắm</h6>
-                <ul>
-                    <li><a th:href="@{/}">Tất cả sản phẩm</a></li>
-                    <li><a th:href="@{/cart}">Giỏ hàng</a></li>
-                    <li><a th:href="@{/order/my-orders}">Đơn hàng</a></li>
-                </ul>
-            </div>
-            <div class="col-md-2">
-                <h6>Hỗ trợ</h6>
-                <ul>
-                    <li><a href="#">Chính sách đổi trả</a></li>
-                    <li><a href="#">Chính sách bảo mật</a></li>
-                    <li><a href="#">Điều khoản dịch vụ</a></li>
-                </ul>
-            </div>
-            <div class="col-md-4 text-md-end">
-                <h6>Theo dõi chúng tôi</h6>
-                <div class="d-flex gap-3 justify-content-md-end">
-                    <a href="#" class="fs-5"><i class="fab fa-facebook"></i></a>
-                    <a href="#" class="fs-5"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="fs-5"><i class="fab fa-tiktok"></i></a>
+    <!-- FOOTER -->
+    <footer class="mt-5">
+        <div class="container">
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="footer-logo mb-4">HANCOS</div>
+                    <p class="small text-muted" style="max-width: 300px;">Hancos cung cấp những sản phẩm thời trang tối
+                        giản, chất lượng cao, giúp bạn tự tin hơn mỗi ngày.</p>
+                </div>
+                <div class="col-md-2">
+                    <h6>Mua sắm</h6>
+                    <ul>
+                        <li><a th:href="@{/}">Tất cả sản phẩm</a></li>
+                        <li><a th:href="@{/cart}">Giỏ hàng</a></li>
+                        <li><a th:href="@{/order/my-orders}">Đơn hàng</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2">
+                    <h6>Hỗ trợ</h6>
+                    <ul>
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Chính sách bảo mật</a></li>
+                        <li><a href="#">Điều khoản dịch vụ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <h6>Theo dõi chúng tôi</h6>
+                    <div class="d-flex gap-3 justify-content-md-end">
+                        <a href="#" class="fs-5"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="fs-5"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="fs-5"><i class="fab fa-tiktok"></i></a>
+                    </div>
                 </div>
             </div>
+            <div class="footer-bottom">
+                <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2024</span> Hancos - Minimalist
+                    Fashion</p>
+            </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2024</span> Hancos - Minimalist Fashion</p>
-        </div>
-    </div>
-</footer>
+    </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    const bienThes = /*[[${p.bienThes}]]*/ [];
-    const hinhAnhTheoMau = /*[[${p.hinhAnhTheoMau}]]*/ {};
-    /*]]>*/
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const bienThes = /*[[${p.bienThes}]]*/[];
+        const hinhAnhTheoMau = /*[[${p.hinhAnhTheoMau}]]*/ {};
+        /*]]>*/
 
-    let selectedColor = null;
-    let selectedSize = null;
-    let currentVariant = null;
+        let selectedColor = null;
+        let selectedSize = null;
+        let currentVariant = null;
 
-    function changeMainImage(src, thumb) {
-        document.getElementById('mainProductImg').src = src;
-        document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
-        if(thumb) thumb.classList.add('active');
-    }
-
-    function selectColor(color, img, el) {
-        selectedColor = color;
-        selectedSize = null;
-        currentVariant = null;
-
-        // Update UI màu
-        document.querySelectorAll('.color-opt').forEach(opt => opt.classList.remove('active'));
-        if (el) el.classList.add('active');
-        document.getElementById('selectedColorName').innerText = color;
-
-        // Đổi ảnh chính nếu có ảnh theo màu
-        // Nếu img là 'null' hoặc 'undefined' chuỗi do getAttribute
-        if(img && img !== 'null' && img !== 'undefined') {
-            changeMainImage(img);
-        } else if (hinhAnhTheoMau && hinhAnhTheoMau[color]) {
-            changeMainImage(hinhAnhTheoMau[color]);
+        function changeMainImage(src, thumb) {
+            document.getElementById('mainProductImg').src = src;
+            document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+            if (thumb) thumb.classList.add('active');
         }
 
-        // Update danh sách size dựa trên màu
-        updateSizeOptions();
-        updateDisplay();
-    }
+        function selectColor(color, img, el) {
+            selectedColor = color;
+            selectedSize = null;
+            currentVariant = null;
 
-    function updateSizeOptions() {
-        const container = document.getElementById('sizeOptionsContainer');
-        container.innerHTML = '';
+            // Update UI màu
+            document.querySelectorAll('.color-opt').forEach(opt => opt.classList.remove('active'));
+            if (el) el.classList.add('active');
+            document.getElementById('selectedColorName').innerText = color;
 
-        // Lấy các size có sẵn cho màu này
-        const availableSizesForColor = bienThes.filter(bt => bt.mauSac === selectedColor);
-        // Lấy unique sizes
-        const sizes = [...new Set(bienThes.map(bt => bt.kichCo))];
-
-        sizes.forEach(size => {
-            const bt = availableSizesForColor.find(b => b.kichCo === size);
-            const div = document.createElement('div');
-            div.className = 'size-opt';
-            div.innerText = size;
-
-            if (bt) {
-                if (bt.soLuongTon <= 0) {
-                    div.classList.add('disabled');
-                    div.title = 'Hết hàng';
-                } else {
-                    div.onclick = () => selectSize(size, div);
-                }
-            } else {
-                div.classList.add('disabled');
-                div.title = 'Không có mẫu này';
+            // Đổi ảnh chính nếu có ảnh theo màu
+            // Nếu img là 'null' hoặc 'undefined' chuỗi do getAttribute
+            if (img && img !== 'null' && img !== 'undefined') {
+                changeMainImage(img);
+            } else if (hinhAnhTheoMau && hinhAnhTheoMau[color]) {
+                changeMainImage(hinhAnhTheoMau[color]);
             }
 
-            container.appendChild(div);
-        });
-    }
-
-    function selectSize(size, el) {
-        selectedSize = size;
-        document.querySelectorAll('.size-opt').forEach(opt => opt.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('selectedSizeName').innerText = size;
-
-        // Tìm biến thể cụ thể
-        currentVariant = bienThes.find(bt => bt.mauSac === selectedColor && bt.kichCo === selectedSize);
-        updateDisplay();
-    }
-
-    function updateDisplay() {
-        const priceEl = document.getElementById('displayPrice');
-        const oldPriceEl = document.getElementById('displayOldPrice');
-        const stockEl = document.getElementById('stockStatus');
-        const btn = document.getElementById('addToCartBtn');
-        const qtyInput = document.getElementById('cartQty');
-
-        if (currentVariant) {
-            priceEl.innerText = new Intl.NumberFormat('vi-VN').format(currentVariant.gia) + ' VND';
-            if (currentVariant.giaGoc && currentVariant.giaGoc > currentVariant.gia) {
-                oldPriceEl.innerText = new Intl.NumberFormat('vi-VN').format(currentVariant.giaGoc) + ' VND';
-            } else {
-                oldPriceEl.innerText = '';
-            }
-            stockEl.innerText = 'Còn hàng (' + currentVariant.soLuongTon + ')';
-            btn.disabled = false;
-            qtyInput.max = String(currentVariant.soLuongTon);
-            handleQtyInput(qtyInput);
-        } else {
-            if (!selectedColor) {
-                priceEl.innerText = 'Chọn màu sắc';
-            } else if (!selectedSize) {
-                priceEl.innerText = 'Chọn kích thước';
-            }
-            oldPriceEl.innerText = '';
-            stockEl.innerText = 'Chọn biến thể';
-            btn.disabled = true;
-            qtyInput.value = 1;
-            qtyInput.removeAttribute('max');
+            // Update danh sách size dựa trên màu
+            updateSizeOptions();
+            updateDisplay();
         }
-    }
-function updateQty(delta) {
-        const input = document.getElementById('cartQty');
-        let val = (parseInt(input.value, 10) || 1) + delta;
-        if (val < 1) val = 1;
-        if (currentVariant && val > currentVariant.soLuongTon) val = currentVariant.soLuongTon;
-        input.value = val;
-    }
 
-    function handleQtyInput(input) {
-        let val = parseInt(input.value, 10);
-        if (Number.isNaN(val) || val < 1) val = 1;
-        if (currentVariant && val > currentVariant.soLuongTon) val = currentVariant.soLuongTon;
-        input.value = val;
-    }
+        function updateSizeOptions() {
+            const container = document.getElementById('sizeOptionsContainer');
+            container.innerHTML = '';
 
-    function addToCart() {
-        if (!currentVariant) return;
+            // Lấy các size có sẵn cho màu này
+            const availableSizesForColor = bienThes.filter(bt => bt.mauSac === selectedColor);
+            // Lấy unique sizes
+            const sizes = [...new Set(bienThes.map(bt => bt.kichCo))];
 
-        const qtyInput = document.getElementById('cartQty');
-        handleQtyInput(qtyInput);
-        const qty = parseInt(qtyInput.value, 10) || 1;
-        const formData = new FormData();
-        formData.append('bienTheId', currentVariant.id);
-        formData.append('soLuong', qty);
+            sizes.forEach(size => {
+                const bt = availableSizesForColor.find(b => b.kichCo === size);
+                const div = document.createElement('div');
+                div.className = 'size-opt';
+                div.innerText = size;
 
-        fetch('/cart/add', {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Đã thêm vào giỏ hàng',
-                    showCancelButton: true,
-                    confirmButtonColor: '#1a1a1a',
-                    cancelButtonColor: '#8b4d4d',
-                    confirmButtonText: 'Đến giỏ hàng',
-                    cancelButtonText: 'Tiếp tục mua sắm'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '/cart';
+                if (bt) {
+                    if (bt.soLuongTon <= 0) {
+                        div.classList.add('disabled');
+                        div.title = 'Hết hàng';
                     } else {
-                        // Cập nhật số lượng trên navbar nếu cần
-                        const cartBadge = document.getElementById('cart-badge');
-                        if (cartBadge) {
-                            cartBadge.innerText = data.count;
-                            cartBadge.style.display = data.count > 0 ? 'inline-block' : 'none';
-                        }
+                        div.onclick = () => selectSize(size, div);
+                    }
+                } else {
+                    div.classList.add('disabled');
+                    div.title = 'Không có mẫu này';
+                }
+
+                container.appendChild(div);
+            });
+        }
+
+        function selectSize(size, el) {
+            selectedSize = size;
+            document.querySelectorAll('.size-opt').forEach(opt => opt.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('selectedSizeName').innerText = size;
+
+            // Tìm biến thể cụ thể
+            currentVariant = bienThes.find(bt => bt.mauSac === selectedColor && bt.kichCo === selectedSize);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const priceEl = document.getElementById('displayPrice');
+            const oldPriceEl = document.getElementById('displayOldPrice');
+            const stockEl = document.getElementById('stockStatus');
+            const btn = document.getElementById('addToCartBtn');
+            const qtyInput = document.getElementById('cartQty');
+
+            if (currentVariant) {
+                priceEl.innerText = new Intl.NumberFormat('vi-VN').format(currentVariant.gia) + ' VND';
+                if (currentVariant.giaGoc && currentVariant.giaGoc > currentVariant.gia) {
+                    oldPriceEl.innerText = new Intl.NumberFormat('vi-VN').format(currentVariant.giaGoc) + ' VND';
+                } else {
+                    oldPriceEl.innerText = '';
+                }
+                stockEl.innerText = 'Còn hàng (' + currentVariant.soLuongTon + ')';
+                btn.disabled = false;
+                qtyInput.max = String(currentVariant.soLuongTon);
+                handleQtyInput(qtyInput);
+            } else {
+                if (!selectedColor) {
+                    priceEl.innerText = 'Chọn màu sắc';
+                } else if (!selectedSize) {
+                    priceEl.innerText = 'Chọn kích thước';
+                }
+                oldPriceEl.innerText = '';
+                stockEl.innerText = 'Chọn biến thể';
+                btn.disabled = true;
+                qtyInput.value = 1;
+                qtyInput.removeAttribute('max');
+            }
+        }
+        function updateQty(delta) {
+            const input = document.getElementById('cartQty');
+            let val = (parseInt(input.value, 10) || 1) + delta;
+            if (val < 1) val = 1;
+            if (currentVariant && val > currentVariant.soLuongTon) val = currentVariant.soLuongTon;
+            input.value = val;
+        }
+
+        function handleQtyInput(input) {
+            let val = parseInt(input.value, 10);
+            if (Number.isNaN(val) || val < 1) val = 1;
+            if (currentVariant && val > currentVariant.soLuongTon) val = currentVariant.soLuongTon;
+            input.value = val;
+        }
+
+        function addToCart() {
+            if (!currentVariant) return;
+
+            const qtyInput = document.getElementById('cartQty');
+            handleQtyInput(qtyInput);
+            const qty = parseInt(qtyInput.value, 10) || 1;
+            const formData = new FormData();
+            formData.append('bienTheId', currentVariant.id);
+            formData.append('soLuong', qty);
+
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Đã thêm vào giỏ hàng',
+                            showCancelButton: true,
+                            confirmButtonColor: '#1a1a1a',
+                            cancelButtonColor: '#8b4d4d',
+                            confirmButtonText: 'Đến giỏ hàng',
+                            cancelButtonText: 'Tiếp tục mua sắm'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/cart';
+                            } else {
+                                // Cập nhật số lượng trên navbar nếu cần
+                                const cartBadge = document.getElementById('cart-badge');
+                                if (cartBadge) {
+                                    cartBadge.innerText = data.count;
+                                    cartBadge.style.display = data.count > 0 ? 'inline-block' : 'none';
+                                }
+                            }
+                        });
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
                     }
                 });
-            } else {
-                Swal.fire('Lỗi', data.message, 'error');
-            }
-        });
-    }
-
-    // Tự động map background color cho các nút màu
-    document.addEventListener('DOMContentLoaded', () => {
-        const normalizeColorKey = (value) => (value || '')
-            .toString()
-            .trim()
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '');
-
-        const colorMap = {
-            den:           '#1a1a1a',
-            trang:         '#f5f5f5',
-            xam:           '#9e9e9e',
-            'xam tro':     '#9e9e9e',
-            be:            '#d9c9a8',
-            beige:         '#d9c9a8',
-            kem:           '#f0e6cc',
-            nau:           '#795548',
-            'nau dat':     '#795548',
-            navy:          '#1a237e',
-            'xanh navy':   '#1a237e',
-            'xanh lam':    '#1565c0',
-            'xanh duong':  '#1565c0',
-            xanh:          '#1a237e',
-            'xanh la':     '#2e7d32',
-            'xanh la cay': '#2e7d32',
-            teal:          '#00695c',
-            olive:         '#6d6c2e',
-            do:            '#c62828',
-            'do tuoi':     '#c62828',
-            hong:          '#e91e8c',
-            'hong pastel': '#f48fb1',
-            tim:           '#6a1b9a',
-            vang:          '#f9a825',
-            'vang dong':   '#f57f17',
-            cam:           '#e65100',
-        };
-
-        // Màu sáng cần viền để nhìn thấy trên nền trắng
-        const lightColorKeys = new Set(['trang', 'kem', 'be', 'beige']);
-
-        document.querySelectorAll('.color-opt').forEach(opt => {
-            const raw = opt.dataset.color || '';
-            const key = normalizeColorKey(raw);
-            const hex = colorMap[key] || raw;
-            opt.style.backgroundColor = hex;
-            if (lightColorKeys.has(key)) {
-                opt.style.boxShadow = 'inset 0 0 0 1.5px #aaa';
-            }
-        });
-
-        // Nếu chỉ có 1 màu, tự chọn luôn
-        const colorOpts = document.querySelectorAll('.color-opt');
-        if (colorOpts.length === 1) {
-            colorOpts[0].click();
         }
-    });
-</script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        // Tự động map background color cho các nút màu
+        document.addEventListener('DOMContentLoaded', () => {
+            const normalizeColorKey = (value) => (value || '')
+                .toString()
+                .trim()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+
+            const colorMap = {
+                den: '#000000',
+                đen: '#000000',
+                trang: '#ffffff',
+                xam: '#9e9e9e',
+                "xam tro": '#9e9e9e',
+
+                be: '#d9c9a8',
+                beige: '#d9c9a8',
+                kem: '#f0e6cc',
+
+                nau: '#795548',
+                "nau dat": '#795548',
+
+                navy: '#1a237e',
+                "xanh navy": '#1a237e',
+
+                "xanh lam": '#1565c0',
+                "xanh duong": '#1565c0',
+
+                xanh: '#1565c0',
+
+                "xanh la": '#2e7d32',
+                "xanh la cay": '#2e7d32',
+
+                teal: '#00695c',
+                olive: '#6d6c2e',
+
+                do: '#c62828',
+                "do tuoi": '#c62828',
+
+                hong: '#e91e63',
+                "hong pastel": '#f48fb1',
+
+                tim: '#6a1b9a',
+
+                vang: '#f9a825',
+                "vang dong": '#f57f17',
+
+                cam: '#e65100'
+            };
+
+            // Màu sáng cần viền để nhìn thấy trên nền trắng
+            const lightColorKeys = new Set(['trang', 'kem', 'be', 'beige']);
+
+            const resolveColorHex = (raw, normalizedKey) => {
+                if (normalizedKey.includes('den')) {
+                    return '#000000';
+                }
+
+                if (colorMap[normalizedKey]) {
+                    return colorMap[normalizedKey];
+                }
+
+                // Ho tro ten mau mo rong: "mau den", "den tron", ...
+                const keywordMap = [
+                    { keyword: 'den', hex: colorMap.den },
+                    { keyword: 'trang', hex: colorMap.trang },
+                    { keyword: 'xam', hex: colorMap.xam },
+                    { keyword: 'be', hex: colorMap.be },
+                    { keyword: 'kem', hex: colorMap.kem },
+                    { keyword: 'nau', hex: colorMap.nau },
+                    { keyword: 'navy', hex: colorMap.navy },
+                    { keyword: 'xanh', hex: colorMap.xanh },
+                    { keyword: 'do', hex: colorMap.do },
+                    { keyword: 'hong', hex: colorMap.hong },
+                    { keyword: 'tim', hex: colorMap.tim },
+                    { keyword: 'vang', hex: colorMap.vang },
+                    { keyword: 'cam', hex: colorMap.cam }
+                ];
+
+                const matched = keywordMap.find(item => normalizedKey.includes(item.keyword));
+                if (matched) {
+                    return matched.hex;
+                }
+
+                if (raw && CSS.supports('color', raw)) {
+                    return raw;
+                }
+
+                return '#bdbdbd';
+            };
+
+            document.querySelectorAll('.color-opt').forEach(opt => {
+                const raw = opt.dataset.color || '';
+                const key = normalizeColorKey(raw);
+                const hex = resolveColorHex(raw, key);
+                opt.style.backgroundColor = hex;
+                opt.style.backgroundImage = 'none';
+                if (key.includes('den')) {
+                    opt.style.borderColor = '#000000';
+                }
+                if (lightColorKeys.has(key) || hex === '#ffffff') {
+                    opt.style.boxShadow = 'inset 0 0 0 1.5px #aaa';
+                }
+            });
+
+            // Nếu chỉ có 1 màu, tự chọn luôn
+            const colorOpts = document.querySelectorAll('.color-opt');
+            if (colorOpts.length === 1) {
+                colorOpts[0].click();
+            } else {
+                updateDisplay();
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
+
 </html>
-
-
-

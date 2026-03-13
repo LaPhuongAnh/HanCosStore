@@ -159,9 +159,12 @@
                     <span class="text-muted">Tạm tính</span>
                     <span class="fw-600" id="cart-subtotal" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
                 </div>
-                <div class="summary-row">
+               <div class="summary-row">
                     <span class="text-muted">Phí vận chuyển</span>
-                    <span class="text-success fw-600 uppercase small letter-spacing-1">Miễn phí</span>
+                    <span class="fw-600" id="shipping-value"
+                          th:if="${shippingFee == 0}" style="color: #198754;">Miễn phí</span>
+                    <span class="fw-600" id="shipping-value"
+                          th:if="${shippingFee != 0}" th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
                 </div>
                 <div class="voucher-section mt-4 mb-4">
                     <label class="small fw-700 text-uppercase letter-spacing-1 mb-2 d-block">Mã giảm giá</label>
@@ -194,13 +197,7 @@
                     </div>
                 </div>
 
-                <div class="summary-row">
-                    <span class="text-muted">Phí vận chuyển</span>
-                    <span class="fw-600" id="shipping-value"
-                          th:if="${shippingFee == 0}" style="color: #198754;">Miễn phí</span>
-                    <span class="fw-600" id="shipping-value"
-                          th:if="${shippingFee != 0}" th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
-                </div>
+                
                 <div class="summary-row" id="discount-row" th:style="${discount != null and discount > 0 ? '' : 'display: none'}">
                     <span class="text-muted">Giảm giá</span>
                     <span class="text-danger fw-600" id="discount-value" th:text="${discount != null and discount > 0 ? '-' + #numbers.formatDecimal(discount, 0, 'COMMA', 0, 'POINT') + '₫' : '0₫'}">0₫</span>

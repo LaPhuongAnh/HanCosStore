@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ánh xạ tên màu (VN/biến thể) -> class CSS
     const colorMap = new Map([
         ["den",          "black"],
+        ["đen",          "black"],
         ["trang",        "white"],
         ["xam",          "gray"],
         ["xam tro",      "gray"],
@@ -77,8 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const priceSelectEl = document.getElementById("priceFilterSelect");
     const resetBtn = document.getElementById("resetFilters");
     const filterEmptyState = document.getElementById("filterEmptyState");
-    const paginationWrapEl = document.getElementById("homePaginationWrap");
-    const paginationEl = document.getElementById("homePagination");
+    const paginationWrapEl = document.querySelector(".home-pagination-wrap");
+    const paginationEl = paginationWrapEl?.querySelector(".pagination") || null;
     const pageInfoEl = document.getElementById("homePageInfo");
     const pageSize = Math.max(parseInt(paginationEl?.dataset.pageSize || "8", 10), 1);
     let currentPage = 1;
@@ -127,7 +128,15 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const renderPagination = (visibleCards) => {
-        if (!paginationEl || !paginationWrapEl) return;
+        if (!paginationEl || !paginationWrapEl) {
+            productCards.forEach((card) => {
+                card.style.display = "none";
+            });
+            visibleCards.forEach((card) => {
+                card.style.display = "";
+            });
+            return;
+        }
 
         const totalItems = visibleCards.length;
         const totalPages = Math.max(Math.ceil(totalItems / pageSize), 1);

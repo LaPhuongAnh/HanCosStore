@@ -25,6 +25,7 @@ public class AdminOrderController {
                              Model model) {
         List<DonHang> orders = orderService.searchOrders(keyword, status);
         model.addAttribute("orders", orders);
+        model.addAttribute("orderStatusCounts", orderService.getOrderStatusCounts());
         model.addAttribute("currentStatus", status != null ? status : "ALL");
         model.addAttribute("keyword", keyword);
         return "admin/orders";

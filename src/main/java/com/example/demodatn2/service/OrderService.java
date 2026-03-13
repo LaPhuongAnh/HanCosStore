@@ -13,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -56,6 +58,32 @@ public class OrderService {
         return filterOrdersByStatus(getAllOrders(), normalizeStatus(status));
     }
 
+    @Transactional(readOnly = true)
+    public long getPendingConfirmationCount() {
+        return donHangRepository.countByTrangThaiIn(List.of("CHO_XAC_NHAN", "PENDING"));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Long> getOrderStatusCounts() {
+        List<DonHang> orders = getAllOrders();
+        Map<String, Long> counts = new LinkedHashMap<>();
+        counts.put("ALL", (long) orders.size());
+        counts.put("CHO_XAC_NHAN", 0L);
+        counts.put("DA_XAC_NHAN", 0L);
+        counts.put("DANG_GIAO", 0L);
+        counts.put("HOAN_THANH", 0L);
+        counts.put("DA_HUY", 0L);
+        counts.put("TRA_HANG", 0L);
+
+        for (DonHang order : orders) {
+            String normalized = normalizeStatus(order.getTrangThai());
+            if (counts.containsKey(normalized)) {
+                counts.put(normalized, counts.get(normalized) + 1);
+            }
+        }
+        return counts;
+    }
+
     private List<DonHang> filterOrdersByStatus(List<DonHang> orders, String normalizedStatus) {
         if (normalizedStatus == null || normalizedStatus.isEmpty() || "ALL".equals(normalizedStatus)) {
             return orders;
@@ -91,7 +119,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<ChiTietDonHang> getOrderItems(Integer orderId) {
         DonHang donHang = getOrderById(orderId);
-        return chiTietDonHangRepository.findByDonHang(donHang);
+        return chiTietDonHangRepository.findByDonHangWithDetails(donHang);
     }
 
     @Transactional(readOnly = true)
